@@ -19,15 +19,19 @@ interface ParticipantRating {
 }
 
 export default function RatingScreen() {
-  const { activeMatch, profile, setActiveMatch } = useAppStore();
+  const { activeMatch, profile } = useAppStore();
+
+  // If there's no match data (e.g. arrived here after match was already cleared), go home
+  React.useEffect(() => {
+    if (!activeMatch) {
+      router.replace('/(tabs)');
+    }
+  }, []);
 
   const defaultRatings: ParticipantRating[] =
-    activeMatch?.participants.map((p) => ({
-      userId: p.userId,
-      name: p.name,
-      score: 0,
-      comment: '',
-    })) ?? [{ userId: 'user_jung', name: 'Jung', score: 0, comment: '' }];
+    (activeMatch?.participants ?? [])
+      .filter((p) => p.userId !== profile?.id)
+      .map((p) => ({ userId: p.userId, name: p.name, score: 0, comment: '' }));
 
   const [ratings, setRatings] = useState<ParticipantRating[]>(defaultRatings);
   const [submitting, setSubmitting] = useState(false);
@@ -52,16 +56,19 @@ export default function RatingScreen() {
     }
     setSubmitting(true);
     try {
-      for (const r of ratings) {
-        await submitRating({
-          match_id: activeMatch?.id ?? 'demo',
-          rater_id: profile?.id ?? 'anon',
-          ratee_id: r.userId,
-          score: r.score,
-          comment: r.comment || undefined,
-        }).catch(() => {}); // Graceful fail in demo
+      if (activeMatch?.id && profile?.id) {
+        for (const r of ratings) {
+          if (r.userId === profile.id) continue; // don't rate yourself
+          await submitRating({
+            match_id: activeMatch.id,
+            rater_id: profile.id,
+            ratee_id: r.userId,
+            score: r.score,
+            comment: r.comment || undefined,
+          }).catch((e: any) => console.warn('[Rating] submitRating error:', e?.message));
+        }
       }
-      setActiveMatch(null);
+      useAppStore.setState({ activeMatch: null });
       router.replace('/(tabs)');
     } finally {
       setSubmitting(false);

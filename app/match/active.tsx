@@ -97,6 +97,51 @@ export default function ActiveMeetupScreen() {
     return () => { channel.unsubscribe(); };
   }, [activeMatch?.id]);
 
+  // Watch for match completion — redirects user 2 when user 1 ends the meetup
+  useEffect(() => {
+    if (!activeMatch?.id) return;
+    const matchId = activeMatch.id;
+
+    const handleCompleted = () => {
+      stopTracking();
+      router.replace('/match/rating');
+    };
+
+    // WebSocket subscription on match status changes
+    const statusChannel = supabase
+      .channel(`match-status-${matchId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'matches', filter: `id=eq.${matchId}` },
+        (payload: any) => {
+          if (payload.new?.status === 'completed') handleCompleted();
+        }
+      )
+      .subscribe((status) => {
+        console.log('[Realtime] match-status channel status:', status);
+      });
+
+    // Polling fallback every 5 seconds
+    const poll = async () => {
+      try {
+        const { data } = await supabase
+          .from('matches')
+          .select('status')
+          .eq('id', matchId)
+          .single();
+        if (data?.status === 'completed') handleCompleted();
+      } catch (e: any) {
+        console.warn('[ActiveMeetup] status poll error:', e?.message);
+      }
+    };
+    const pollInterval = setInterval(poll, 5000);
+
+    return () => {
+      statusChannel.unsubscribe();
+      clearInterval(pollInterval);
+    };
+  }, [activeMatch?.id]);
+
   const startTracking = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') return;
