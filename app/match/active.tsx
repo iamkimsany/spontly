@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { GradientBackground } from '@/components/ui/GradientBackground';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
@@ -232,6 +233,7 @@ export default function ActiveMeetupScreen() {
 
   return (
     <GradientBackground>
+      <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.container}>
         {/* Back button */}
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
@@ -364,6 +366,7 @@ export default function ActiveMeetupScreen() {
 
 
       </View>
+      </SafeAreaView>
 
       {/* SOS Alert Modal — no real calls, in-app only */}
       <Modal visible={showSOSAlert} transparent animationType="fade">
@@ -401,9 +404,14 @@ export default function ActiveMeetupScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: 52 },
-  backBtn: { paddingHorizontal: 20, paddingBottom: 8 },
-  backText: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.base, color: Colors.text.secondary },
+  container: { flex: 1 },
+  backBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  backText: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.base, color: Colors.accent },
   header: { marginHorizontal: 16, marginBottom: 8 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   headerTitle: { fontFamily: Fonts.display, fontSize: FontSize.md, color: Colors.text.primary },
