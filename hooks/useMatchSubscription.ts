@@ -6,12 +6,37 @@ import { scheduleLocalNotification } from '@/lib/notifications';
 export function useMatchSubscription() {
   const { profile, setActiveMatch } = useAppStore();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const prevMatchId = useRef<string | null>(null);
 
   useEffect(() => {
     if (!profile?.id) return;
-
     const userId = profile.id;
 
+    // Poll every 5 seconds — fallback for when WebSocket is unreliable on mobile browsers
+    const poll = async () => {
+      try {
+        const match = await loadActiveMatchForUser(userId);
+        if (match) {
+          if (match.id !== prevMatchId.current) {
+            prevMatchId.current = match.id;
+            setActiveMatch(match);
+            if (prevMatchId.current !== null) {
+              scheduleLocalNotification(
+                '🔥 Match found!',
+                `Someone nearby wants to: ${match.activityTitle}. Tap to view.`
+              );
+            }
+          }
+        }
+      } catch (e: any) {
+        console.warn('[useMatchSubscription] Poll error:', e?.message);
+      }
+    };
+
+    poll();
+    const interval = setInterval(poll, 5000);
+
+    // WebSocket subscription — fires immediately when available
     const channel = supabase
       .channel(`match-notify-${userId}`)
       .on(
@@ -22,6 +47,7 @@ export function useMatchSubscription() {
           try {
             const match = await loadActiveMatchForUser(userId);
             if (match) {
+              prevMatchId.current = match.id;
               setActiveMatch(match);
               scheduleLocalNotification(
                 '🔥 Match found!',
@@ -29,7 +55,7 @@ export function useMatchSubscription() {
               );
             }
           } catch (e: any) {
-            console.warn('[useMatchSubscription] Failed to load match:', e?.message);
+            console.warn('[useMatchSubscription] WebSocket handler error:', e?.message);
           }
         }
       )
@@ -40,6 +66,7 @@ export function useMatchSubscription() {
     channelRef.current = channel;
 
     return () => {
+      clearInterval(interval);
       channel.unsubscribe();
     };
   }, [profile?.id]);
