@@ -49,6 +49,12 @@ export default function RatingScreen() {
   };
 
   const handleSubmit = async () => {
+    if (ratings.length === 0) {
+      // Solo meetup — no one to rate, go straight home
+      useAppStore.setState({ activeMatch: null });
+      router.replace('/(tabs)');
+      return;
+    }
     const unrated = ratings.filter((r) => r.score === 0);
     if (unrated.length > 0) {
       Alert.alert('Rate everyone', 'Please rate all participants before submitting.');
@@ -81,7 +87,9 @@ export default function RatingScreen() {
         <Text style={styles.emoji}>⭐</Text>
         <Text style={styles.title}>Rate your meetup</Text>
         <Text style={styles.sub}>
-          Your ratings help build a safe, trustworthy community. This step cannot be skipped.
+          {ratings.length === 0
+            ? 'You met up solo this time — no participants to rate.'
+            : 'Your ratings help build a safe, trustworthy community. This step cannot be skipped.'}
         </Text>
 
         {ratings.map((r) => (
@@ -135,10 +143,10 @@ export default function RatingScreen() {
         </GlassCard>
 
         <PrimaryButton
-          label="Submit Ratings →"
+          label={ratings.length === 0 ? 'Done →' : 'Submit Ratings →'}
           onPress={handleSubmit}
           loading={submitting}
-          disabled={ratings.some((r) => r.score === 0)}
+          disabled={ratings.length > 0 && ratings.some((r) => r.score === 0)}
           fullWidth
           style={{ marginTop: 8 }}
         />
