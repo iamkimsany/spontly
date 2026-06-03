@@ -1,25 +1,71 @@
 {
   "expo": {
-    "name": "spontly",
+    "name": "Spontly",
     "slug": "spontly",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
+    "scheme": "spontly",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.example.myitemsCrud",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Spontly uses your location to find nearby activity matches and keep you safe during meetups.",
+        "NSLocationAlwaysUsageDescription": "Spontly tracks your location during active meetups for your safety.",
+        "NSCameraUsageDescription": "Spontly needs camera access for profile photo and selfie verification.",
+        "NSPhotoLibraryUsageDescription": "Spontly needs photo library access to upload your profile photo."
+      }
     },
     "android": {
+      "package": "com.example.myitems_crud",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#0a0a1a",
+        "foregroundImage": "./assets/icon.png"
       },
-      "predictiveBackGestureEnabled": false
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Spontly uses your location during meetups for safety."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Spontly uses the camera for profile photo and selfie verification."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#C8F135"
+        }
+      ],
+      "expo-splash-screen"
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "spontly"
+      }
     }
   }
 }

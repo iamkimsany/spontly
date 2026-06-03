@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "106149870332",
+    "project_id": "labs-f936a",
+    "storage_bucket": "labs-f936a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:106149870332:android:365c2a496e7eec0e1cb579",
+        "android_client_info": {
+          "package_name": "com.example.myitems_crud"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYtk8f8UMyhv1T1Eb4pEzSkytE8WDWjzo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
