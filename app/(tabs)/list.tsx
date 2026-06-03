@@ -11,7 +11,7 @@ import { AddActivitySheet } from '@/components/AddActivitySheet';
 import { CATEGORIES } from '@/constants/categories';
 
 export default function ListScreen() {
-  const { activities, removeActivity } = useAppStore();
+  const { activities, removeActivity, activeMatch } = useAppStore();
   const [showAdd, setShowAdd] = useState(false);
 
   const grouped = {
@@ -43,11 +43,26 @@ export default function ListScreen() {
                   <Text style={styles.itemCat}>{cat?.label}</Text>
                 </View>
                 <View style={styles.itemRight}>
-                  {a.isPublic && (
-                    <View style={styles.publicPill}>
-                      <Text style={styles.publicText}>Seeking match</Text>
-                    </View>
-                  )}
+                  {a.isPublic && (() => {
+                    const isMatched = activeMatch?.activityId === a.id;
+                    const isCompleted = isMatched && activeMatch?.status === 'completed';
+                    const isActive = isMatched && (activeMatch?.status === 'pending' || activeMatch?.status === 'confirmed');
+                    if (isCompleted) return (
+                      <View style={[styles.publicPill, styles.completedPill]}>
+                        <Text style={[styles.publicText, styles.completedText]}>Completed ✓</Text>
+                      </View>
+                    );
+                    if (isActive) return (
+                      <View style={[styles.publicPill, styles.matchedPill]}>
+                        <Text style={[styles.publicText, styles.matchedText]}>Matched 🔥</Text>
+                      </View>
+                    );
+                    return (
+                      <View style={styles.publicPill}>
+                        <Text style={styles.publicText}>Seeking match</Text>
+                      </View>
+                    );
+                  })()}
                   <TouchableOpacity onPress={() => handleDelete(a.id)} style={styles.deleteBtn}>
                     <Text style={styles.deleteIcon}>✕</Text>
                   </TouchableOpacity>
@@ -110,6 +125,10 @@ const styles = StyleSheet.create({
   itemRight: { gap: 6, alignItems: 'flex-end' },
   publicPill: { backgroundColor: Colors.accentSoft, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 9999, borderWidth: 1, borderColor: Colors.border.accent },
   publicText: { fontFamily: Fonts.bodyMedium, fontSize: 10, color: Colors.accent },
+  completedPill: { backgroundColor: 'rgba(34,197,94,0.15)', borderColor: 'rgba(34,197,94,0.4)' },
+  completedText: { color: '#4ade80' },
+  matchedPill: { backgroundColor: 'rgba(251,146,60,0.15)', borderColor: 'rgba(251,146,60,0.4)' },
+  matchedText: { color: '#fb923c' },
   deleteBtn: { padding: 4 },
   deleteIcon: { color: Colors.text.tertiary, fontSize: 14 },
   empty: { alignItems: 'center', marginTop: 40 },

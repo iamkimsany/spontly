@@ -16,7 +16,7 @@ import { Colors } from '@/constants/colors';
 import { Fonts, FontSize } from '@/constants/typography';
 import { useAppStore, SafetyZone } from '@/store';
 import { scheduleLocalNotification, sendSOSNotificationToTrustedContact } from '@/lib/notifications';
-import { logSafetyEvent, getChatMessages, sendChatMessage, DbChatMessage, supabase, updateMatchStatus } from '@/lib/supabase';
+import { logSafetyEvent, getChatMessages, sendChatMessage, DbChatMessage, supabase, updateMatchStatus, updateGpsActive } from '@/lib/supabase';
 
 interface ChatMsg {
   id: string;
@@ -147,6 +147,12 @@ export default function ActiveMeetupScreen() {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') return;
     setGpsActive(true);
+    const { activeMatch: match, profile: p } = useAppStore.getState();
+    if (match?.id && p?.id) {
+      updateGpsActive(match.id, p.id, true).catch((e: any) =>
+        console.warn('[GPS] updateGpsActive error:', e?.message)
+      );
+    }
     locationSub.current = await Location.watchPositionAsync(
       { accuracy: Location.Accuracy.High, distanceInterval: 20 },
       (loc) => {
@@ -159,6 +165,10 @@ export default function ActiveMeetupScreen() {
   const stopTracking = () => {
     locationSub.current?.remove();
     setGpsActive(false);
+    const { activeMatch: match, profile: p } = useAppStore.getState();
+    if (match?.id && p?.id) {
+      updateGpsActive(match.id, p.id, false).catch(() => {});
+    }
   };
 
   const checkSafetyZone = useCallback(

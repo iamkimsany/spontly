@@ -11,6 +11,7 @@ import { Colors } from '@/constants/colors';
 import { Fonts, FontSize } from '@/constants/typography';
 import { useAppStore } from '@/store';
 import { scheduleLocalNotification } from '@/lib/notifications';
+import { confirmMatch } from '@/lib/supabase';
 
 export default function ConfirmMeetupScreen() {
   const [gpsReady, setGpsReady] = useState(false);
@@ -60,7 +61,11 @@ export default function ConfirmMeetupScreen() {
           `${profile.name} confirmed a meetup: ${activeMatch.activityTitle} at ${activeMatch.location}. Expected return: ~2 hours.`
         );
       }
-      await new Promise((r) => setTimeout(r, 600));
+      if (activeMatch?.id && profile?.id) {
+        await confirmMatch(activeMatch.id, profile.id).catch((e: any) =>
+          console.warn('[Confirm] confirmMatch error:', e?.message)
+        );
+      }
       router.replace('/match/active');
     } finally {
       setConfirming(false);

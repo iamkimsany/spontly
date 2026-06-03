@@ -139,6 +139,15 @@ export async function confirmMatch(matchId: string, userId: string) {
   if (error) throw error;
 }
 
+export async function updateGpsActive(matchId: string, userId: string, gpsActive: boolean) {
+  const { error } = await supabase
+    .from('match_participants')
+    .update({ gps_active: gpsActive })
+    .eq('match_id', matchId)
+    .eq('user_id', userId);
+  if (error) throw error;
+}
+
 // ---- Chat messages ----
 
 export interface DbChatMessage {
