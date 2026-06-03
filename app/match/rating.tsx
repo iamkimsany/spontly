@@ -49,9 +49,11 @@ export default function RatingScreen() {
     );
   };
 
+  const { markActivityCompleted } = useAppStore();
+
   const handleSubmit = async () => {
     if (ratings.length === 0) {
-      // Solo meetup — no one to rate, go straight home
+      if (activeMatch?.activityId) markActivityCompleted(activeMatch.activityId);
       useAppStore.setState({ activeMatch: null });
       router.replace('/(tabs)');
       return;
@@ -74,6 +76,7 @@ export default function RatingScreen() {
           }).catch((e: any) => console.warn('[Rating] submitRating error:', e?.message));
         }
       }
+      if (activeMatch?.activityId) markActivityCompleted(activeMatch.activityId);
       useAppStore.setState({ activeMatch: null });
       router.replace('/(tabs)');
     } finally {

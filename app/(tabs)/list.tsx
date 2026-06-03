@@ -11,7 +11,7 @@ import { AddActivitySheet } from '@/components/AddActivitySheet';
 import { CATEGORIES } from '@/constants/categories';
 
 export default function ListScreen() {
-  const { activities, removeActivity, activeMatch } = useAppStore();
+  const { activities, removeActivity, activeMatch, completedActivityIds } = useAppStore();
   const [showAdd, setShowAdd] = useState(false);
 
   const grouped = {
@@ -45,7 +45,7 @@ export default function ListScreen() {
                 <View style={styles.itemRight}>
                   {a.isPublic && (() => {
                     const isMatched = activeMatch?.activityId === a.id;
-                    const isCompleted = isMatched && activeMatch?.status === 'completed';
+                    const isCompleted = completedActivityIds.includes(a.id) || (isMatched && activeMatch?.status === 'completed');
                     const isActive = isMatched && (activeMatch?.status === 'pending' || activeMatch?.status === 'confirmed');
                     if (isCompleted) return (
                       <View style={[styles.publicPill, styles.completedPill]}>

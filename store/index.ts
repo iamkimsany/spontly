@@ -62,6 +62,7 @@ interface AppState {
   // Matches
   activeMatch: Match | null;
   pendingMatches: Match[];
+  completedActivityIds: string[];
 
   // Safety
   gpsActive: boolean;
@@ -79,6 +80,7 @@ interface AppState {
   removeActivity: (id: string) => void;
   setActiveMatch: (match: Match | null) => void;
   setPendingMatches: (matches: Match[]) => void;
+  markActivityCompleted: (activityId: string) => void;
   setGpsActive: (v: boolean) => void;
   setSafetyZone: (zone: SafetyZone) => void;
   setCurrentLocation: (loc: { latitude: number; longitude: number } | null) => void;
@@ -93,6 +95,7 @@ export const useAppStore = create<AppState>((set) => ({
   activities: [],
   activeMatch: null,
   pendingMatches: [],
+  completedActivityIds: [],
   gpsActive: false,
   safetyZone: 'green',
   currentLocation: null,
@@ -107,6 +110,11 @@ export const useAppStore = create<AppState>((set) => ({
   removeActivity: (id) => set((s) => ({ activities: s.activities.filter((a) => a.id !== id) })),
   setActiveMatch: (match) => set({ activeMatch: match }),
   setPendingMatches: (matches) => set({ pendingMatches: matches }),
+  markActivityCompleted: (activityId) => set((s) => ({
+    completedActivityIds: s.completedActivityIds.includes(activityId)
+      ? s.completedActivityIds
+      : [...s.completedActivityIds, activityId],
+  })),
   setGpsActive: (v) => set({ gpsActive: v }),
   setSafetyZone: (zone) => set({ safetyZone: zone }),
   setCurrentLocation: (loc) => set({ currentLocation: loc }),
