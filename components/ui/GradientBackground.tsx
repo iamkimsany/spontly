@@ -17,10 +17,10 @@ export function GradientBackground({ children, style }: Props) {
       end={{ x: 0.85, y: 1 }}
       style={[styles.container, style]}
     >
-      {/* Decorative blobs */}
-      <View style={styles.blob1} />
-      <View style={styles.blob2} />
-      <View style={styles.blob3} />
+      {/* Decorative blobs — pointerEvents none so they never intercept touches */}
+      <View style={styles.blob1} pointerEvents="none" />
+      <View style={styles.blob2} pointerEvents="none" />
+      <View style={styles.blob3} pointerEvents="none" />
       {children}
     </LinearGradient>
   );
