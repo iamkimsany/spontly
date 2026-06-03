@@ -233,6 +233,11 @@ export default function ActiveMeetupScreen() {
   return (
     <GradientBackground>
       <View style={styles.container}>
+        {/* Back button */}
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Text style={styles.backText}>← Back</Text>
+        </TouchableOpacity>
+
         {/* Header */}
         <GlassCard variant="regular" padding={{ vertical: 14, horizontal: 20 }} style={styles.header}>
           <View style={styles.headerRow}>
@@ -397,6 +402,8 @@ export default function ActiveMeetupScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: 52 },
+  backBtn: { paddingHorizontal: 20, paddingBottom: 8 },
+  backText: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.base, color: Colors.text.secondary },
   header: { marginHorizontal: 16, marginBottom: 8 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   headerTitle: { fontFamily: Fonts.display, fontSize: FontSize.md, color: Colors.text.primary },
