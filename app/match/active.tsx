@@ -78,7 +78,7 @@ export default function ActiveMeetupScreen() {
     }).catch((e: any) => console.warn('[Chat] load error:', e?.message));
 
     const channel = supabase
-      .channel(`chat-${matchId}`)
+      .channel(`chat-${matchId}-${Date.now()}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `match_id=eq.${matchId}` },
@@ -94,7 +94,7 @@ export default function ActiveMeetupScreen() {
       });
 
     chatChannelRef.current = channel;
-    return () => { channel.unsubscribe(); };
+    return () => { supabase.removeChannel(channel); };
   }, [activeMatch?.id]);
 
   // Watch for match completion — redirects user 2 when user 1 ends the meetup
@@ -109,7 +109,7 @@ export default function ActiveMeetupScreen() {
 
     // WebSocket subscription on match status changes
     const statusChannel = supabase
-      .channel(`match-status-${matchId}`)
+      .channel(`match-status-${matchId}-${Date.now()}`)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'matches', filter: `id=eq.${matchId}` },
@@ -137,7 +137,7 @@ export default function ActiveMeetupScreen() {
     const pollInterval = setInterval(poll, 5000);
 
     return () => {
-      statusChannel.unsubscribe();
+      supabase.removeChannel(statusChannel);
       clearInterval(pollInterval);
     };
   }, [activeMatch?.id]);
