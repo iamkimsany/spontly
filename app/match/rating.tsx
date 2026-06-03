@@ -28,9 +28,10 @@ export default function RatingScreen() {
     }
   }, []);
 
+  // Include ALL participants — if only 1 person in match, show them anyway
+  // (profile.id may differ from auth uid after re-login, so don't filter by id)
   const defaultRatings: ParticipantRating[] =
     (activeMatch?.participants ?? [])
-      .filter((p) => p.userId !== profile?.id)
       .map((p) => ({ userId: p.userId, name: p.name, score: 0, comment: '' }));
 
   const [ratings, setRatings] = useState<ParticipantRating[]>(defaultRatings);
@@ -64,7 +65,6 @@ export default function RatingScreen() {
     try {
       if (activeMatch?.id && profile?.id) {
         for (const r of ratings) {
-          if (r.userId === profile.id) continue; // don't rate yourself
           await submitRating({
             match_id: activeMatch.id,
             rater_id: profile.id,
