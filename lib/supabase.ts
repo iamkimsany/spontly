@@ -11,6 +11,13 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     persistSession: true,
     detectSessionInUrl: false,
   },
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
+    reconnectAfterMs: (tries: number) => Math.min(tries * 1000, 30000),
+    timeout: 30000,
+  },
 });
 
 // ---- Users ----

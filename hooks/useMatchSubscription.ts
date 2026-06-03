@@ -33,7 +33,9 @@ export function useMatchSubscription() {
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('[Realtime] match-notify channel status:', status);
+      });
 
     channelRef.current = channel;
 

@@ -89,7 +89,9 @@ export default function ActiveMeetupScreen() {
           setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('[Realtime] chat channel status:', status);
+      });
 
     chatChannelRef.current = channel;
     return () => { channel.unsubscribe(); };
