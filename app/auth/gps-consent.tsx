@@ -79,7 +79,7 @@ export default function GPSConsentScreen() {
   return (
     <GradientBackground>
       <View style={styles.container}>
-        <Image source={require("@/assets/gachi-logo.png")} style={styles.logo} resizeMode="contain" />
+        <Image source={require("@/assets/gachi-logo-removebg-preview.png")} style={styles.logo} resizeMode="contain" />
         <Text style={styles.step}>Step 5 of 5</Text>
 
         <View style={styles.shieldWrap}>

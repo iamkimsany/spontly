@@ -84,7 +84,7 @@ export default function PhoneScreen() {
     <GradientBackground>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.kav}>
         <View style={styles.container}>
-          <Image source={require("@/assets/gachi-logo.png")} style={styles.logo} resizeMode="contain" />
+          <Image source={require("@/assets/gachi-logo-removebg-preview.png")} style={styles.logo} resizeMode="contain" />
 
           {/* Mode toggle */}
           <View style={styles.toggle}>

@@ -109,7 +109,7 @@ export default function ProfileSetupScreen() {
   return (
     <GradientBackground>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <Image source={require("@/assets/gachi-logo.png")} style={styles.logo} resizeMode="contain" />
+        <Image source={require("@/assets/gachi-logo-removebg-preview.png")} style={styles.logo} resizeMode="contain" />
         <Text style={styles.step}>Step 3 of 5</Text>
 
         <GlassCard variant="strong" style={styles.card}>

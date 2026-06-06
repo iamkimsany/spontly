@@ -62,7 +62,7 @@ export default function OTPScreen() {
         style={{ flex: 1 }}
       >
         <View style={styles.container}>
-          <Image source={require("@/assets/gachi-logo.png")} style={styles.logo} resizeMode="contain" />
+          <Image source={require("@/assets/gachi-logo-removebg-preview.png")} style={styles.logo} resizeMode="contain" />
           <Text style={styles.step}>Step 2 of 5</Text>
 
           <View style={styles.testBanner}>
