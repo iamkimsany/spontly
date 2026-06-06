@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, Image, StyleSheet, useWindowDimensions, KeyboardAvoidingView, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { GradientBackground } from '@/components/ui/GradientBackground';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -11,6 +11,9 @@ import { useAppStore } from '@/store';
 
 export default function TrustedContactScreen() {
   const [contact, setContact] = useState('');
+  const { width } = useWindowDimensions();
+  const logoWidth = Math.min(width * 0.45, 240);
+  const logoHeight = logoWidth * 0.4;
   const [error, setError] = useState('');
   const { profile, setProfile } = useAppStore();
 
@@ -32,7 +35,7 @@ export default function TrustedContactScreen() {
         style={{ flex: 1 }}
       >
         <View style={styles.container}>
-          <Image source={require("@/assets/gachi-logo-removebg-preview.png")} style={styles.logo} resizeMode="contain" />
+          <Image source={require("@/assets/gachi-logo-removebg-preview.png")} style={[styles.logo, { width: logoWidth, height: logoHeight }]} resizeMode="contain" />
           <Text style={styles.step}>Step 4 of 5</Text>
 
           <GlassCard variant="strong" style={styles.card}>
@@ -83,7 +86,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 16,
   },
-  logo: { width: 200, height: 80, alignSelf: 'center' },
+  logo: { alignSelf: 'center' },
   step: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.tertiary, textAlign: 'center' },
   card: { width: '100%' },
   title: { fontFamily: Fonts.display, fontSize: FontSize.lg, color: Colors.text.primary, marginBottom: 8 },

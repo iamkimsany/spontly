@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, Alert } from 'react-native';
+import { View, Text, Image, StyleSheet, useWindowDimensions, Alert } from 'react-native';
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
 import { GradientBackground } from '@/components/ui/GradientBackground';
@@ -32,6 +32,9 @@ async function createSupabaseSession(phone: string): Promise<string> {
 
 export default function GPSConsentScreen() {
   const [loading, setLoading] = useState(false);
+  const { width } = useWindowDimensions();
+  const logoWidth = Math.min(width * 0.45, 240);
+  const logoHeight = logoWidth * 0.4;
   const { profile, setProfile, setAuthenticated } = useAppStore();
 
   const finishRegistration = async (gpsGranted: boolean) => {
@@ -79,7 +82,7 @@ export default function GPSConsentScreen() {
   return (
     <GradientBackground>
       <View style={styles.container}>
-        <Image source={require("@/assets/gachi-logo-removebg-preview.png")} style={styles.logo} resizeMode="contain" />
+        <Image source={require("@/assets/gachi-logo-removebg-preview.png")} style={[styles.logo, { width: logoWidth, height: logoHeight }]} resizeMode="contain" />
         <Text style={styles.step}>Step 5 of 5</Text>
 
         <View style={styles.shieldWrap}>
@@ -128,7 +131,7 @@ const styles = StyleSheet.create({
     gap: 16,
     justifyContent: 'center',
   },
-  logo: { width: 200, height: 80, alignSelf: 'center' },
+  logo: { alignSelf: 'center' },
   step: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.tertiary, textAlign: 'center' },
   shieldWrap: { alignItems: 'center' },
   shieldIcon: { fontSize: 64 },

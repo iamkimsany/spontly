@@ -16,6 +16,9 @@ import { verifySelfie } from '@/lib/openai';
 
 export default function ProfileSetupScreen() {
   const [name, setName] = useState('');
+  const { width } = useWindowDimensions();
+  const logoWidth = Math.min(width * 0.45, 240);
+  const logoHeight = logoWidth * 0.4;
   const [age, setAge] = useState('');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [selfieUri, setSelfieUri] = useState<string | null>(null);
@@ -109,7 +112,7 @@ export default function ProfileSetupScreen() {
   return (
     <GradientBackground>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <Image source={require("@/assets/gachi-logo-removebg-preview.png")} style={styles.logo} resizeMode="contain" />
+        <Image source={require("@/assets/gachi-logo-removebg-preview.png")} style={[styles.logo, { width: logoWidth, height: logoHeight }]} resizeMode="contain" />
         <Text style={styles.step}>Step 3 of 5</Text>
 
         <GlassCard variant="strong" style={styles.card}>
@@ -181,7 +184,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     gap: 16,
   },
-  logo: { width: 200, height: 80, alignSelf: 'center' },
+  logo: { alignSelf: 'center' },
   step: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.tertiary, textAlign: 'center' },
   card: { width: '100%' },
   title: { fontFamily: Fonts.display, fontSize: FontSize.lg, color: Colors.text.primary, marginBottom: 8 },

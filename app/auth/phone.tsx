@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, useWindowDimensions, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { GradientBackground } from '@/components/ui/GradientBackground';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -12,6 +12,9 @@ import { supabase, getUser } from '@/lib/supabase';
 
 export default function PhoneScreen() {
   const [mode, setMode] = useState<'register' | 'login'>('register');
+  const { width } = useWindowDimensions();
+  const logoWidth = Math.min(width * 0.45, 240);
+  const logoHeight = logoWidth * 0.4;
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -84,7 +87,7 @@ export default function PhoneScreen() {
     <GradientBackground>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.kav}>
         <View style={styles.container}>
-          <Image source={require("@/assets/gachi-logo-removebg-preview.png")} style={styles.logo} resizeMode="contain" />
+          <Image source={require("@/assets/gachi-logo-removebg-preview.png")} style={[styles.logo, { width: logoWidth, height: logoHeight }]} resizeMode="contain" />
 
           {/* Mode toggle */}
           <View style={styles.toggle}>
@@ -154,7 +157,7 @@ export default function PhoneScreen() {
 const styles = StyleSheet.create({
   kav: { flex: 1 },
   container: { flex: 1, paddingHorizontal: 24, paddingTop: 80, justifyContent: 'center', gap: 16 },
-  logo: { width: 200, height: 80, alignSelf: 'center' },
+  logo: { alignSelf: 'center' },
   toggle: {
     flexDirection: 'row',
     backgroundColor: Colors.glass.subtle,
