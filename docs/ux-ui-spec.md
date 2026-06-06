@@ -1,4 +1,4 @@
-# Spontly — UX/UI Specification
+# Gachi — UX/UI Specification
 
 ## Design Philosophy
 Glassmorphism-first. Frosted glass cards floating over deep gradient backgrounds. Every surface feels like frosted glass — light passes through, depth is visible beneath. Safety-forward, activity-first, friction-minimal.

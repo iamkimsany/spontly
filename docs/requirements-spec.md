@@ -1,4 +1,4 @@
-# Spontly — Requirements Specification
+# Gachi — Requirements Specification
 
 ## Functional Requirements
 

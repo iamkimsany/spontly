@@ -62,7 +62,7 @@ export default function OTPScreen() {
         style={{ flex: 1 }}
       >
         <View style={styles.container}>
-          <Text style={styles.logo}>⚡ Spontly</Text>
+          <Text style={styles.logo}>⚡ Gachi</Text>
           <Text style={styles.step}>Step 2 of 5</Text>
 
           <View style={styles.testBanner}>

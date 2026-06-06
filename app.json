@@ -1,28 +1,28 @@
 {
   "expo": {
-    "name": "Spontly",
-    "slug": "spontly",
+    "name": "Gachi",
+    "slug": "gachi",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "scheme": "spontly",
+    "scheme": "gachi",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.example.myitemsCrud",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Spontly uses your location to find nearby activity matches and keep you safe during meetups.",
-        "NSLocationAlwaysUsageDescription": "Spontly tracks your location during active meetups for your safety.",
-        "NSCameraUsageDescription": "Spontly needs camera access for profile photo and selfie verification.",
-        "NSPhotoLibraryUsageDescription": "Spontly needs photo library access to upload your profile photo."
+        "NSLocationWhenInUseUsageDescription": "Gachi uses your location to find nearby activity matches and keep you safe during meetups.",
+        "NSLocationAlwaysUsageDescription": "Gachi tracks your location during active meetups for your safety.",
+        "NSCameraUsageDescription": "Gachi needs camera access for profile photo and selfie verification.",
+        "NSPhotoLibraryUsageDescription": "Gachi needs photo library access to upload your profile photo."
       }
     },
     "android": {
       "package": "com.example.myitems_crud",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "backgroundColor": "#0a0a1a",
+        "backgroundColor": "#0a0f1e",
         "foregroundImage": "./assets/icon.png"
       },
       "permissions": [
@@ -42,19 +42,19 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Spontly uses your location during meetups for safety."
+          "locationAlwaysAndWhenInUsePermission": "Gachi uses your location during meetups for safety."
         }
       ],
       [
         "expo-camera",
         {
-          "cameraPermission": "Spontly uses the camera for profile photo and selfie verification."
+          "cameraPermission": "Gachi uses the camera for profile photo and selfie verification."
         }
       ],
       [
         "expo-notifications",
         {
-          "color": "#C8F135"
+          "color": "#2563EB"
         }
       ],
       "expo-splash-screen"
@@ -64,7 +64,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "spontly"
+        "projectId": "gachi"
       }
     }
   }

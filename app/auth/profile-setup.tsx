@@ -109,7 +109,7 @@ export default function ProfileSetupScreen() {
   return (
     <GradientBackground>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <Text style={styles.logo}>⚡ Spontly</Text>
+        <Text style={styles.logo}>⚡ Gachi</Text>
         <Text style={styles.step}>Step 3 of 5</Text>
 
         <GlassCard variant="strong" style={styles.card}>

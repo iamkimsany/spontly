@@ -90,7 +90,7 @@ export default function ListScreen() {
             <GlassCard variant="strong" padding={40} style={styles.empty}>
               <Text style={styles.emptyIcon}>📋</Text>
               <Text style={styles.emptyTitle}>Your list is empty</Text>
-              <Text style={styles.emptySub}>Add activities you want to do and let Spontly find you company.</Text>
+              <Text style={styles.emptySub}>Add activities you want to do and let Gachi find you company.</Text>
               <PrimaryButton label="Add first activity" onPress={() => setShowAdd(true)} style={{ marginTop: 20 }} />
             </GlassCard>
           ) : (

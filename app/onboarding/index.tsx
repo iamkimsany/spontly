@@ -16,7 +16,7 @@ const SLIDES = [
   {
     key: 'problem',
     headline: 'Want to do something.\nNo one to do it with.',
-    sub: "You're not alone — 100,000 people said the same thing. Spontly fixes that.",
+    sub: "You're not alone — 100,000 people said the same thing. Gachi fixes that.",
     cta: 'See how it works →',
     badge: null,
   },
@@ -70,7 +70,7 @@ export default function OnboardingScreen() {
           <View key={s.key} style={[styles.slide, { width: W }]}>
             {/* Logo */}
             <View style={styles.logoRow}>
-              <Text style={styles.logo}>⚡ Spontly</Text>
+              <Text style={styles.logo}>⚡ Gachi</Text>
             </View>
 
             <View style={styles.content}>

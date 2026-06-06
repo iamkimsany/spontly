@@ -1,10 +1,10 @@
 export const Colors = {
-  // Background gradient stops
+  // Background gradient stops — deep navy blue
   bg: {
-    start: '#0a0a1a',
-    mid1: '#0d1033',
-    mid2: '#1a0a2e',
-    end: '#0d0820',
+    start: '#0a0f1e',
+    mid1: '#0d1a3a',
+    mid2: '#0a1628',
+    end: '#080e1c',
   },
 
   // Glass surfaces
@@ -12,7 +12,7 @@ export const Colors = {
     strong: 'rgba(255,255,255,0.12)',
     regular: 'rgba(255,255,255,0.08)',
     subtle: 'rgba(255,255,255,0.05)',
-    active: 'rgba(200,241,53,0.08)',
+    active: 'rgba(37,99,235,0.08)',
   },
 
   // Borders
@@ -20,25 +20,25 @@ export const Colors = {
     strong: 'rgba(255,255,255,0.18)',
     regular: 'rgba(255,255,255,0.10)',
     subtle: 'rgba(255,255,255,0.07)',
-    accent: 'rgba(200,241,53,0.25)',
+    accent: 'rgba(37,99,235,0.4)',
   },
 
-  // Accent - electric lime
-  accent: '#C8F135',
-  accentGlow: 'rgba(200,241,53,0.25)',
-  accentSoft: 'rgba(200,241,53,0.12)',
+  // Accent — electric blue
+  accent: '#2563EB',
+  accentGlow: 'rgba(37,99,235,0.35)',
+  accentSoft: 'rgba(37,99,235,0.12)',
 
   // Blobs
-  blob1: 'rgba(99,102,241,0.3)',
-  blob2: 'rgba(139,92,246,0.2)',
-  blob3: 'rgba(200,241,53,0.05)',
+  blob1: 'rgba(37,99,235,0.25)',
+  blob2: 'rgba(59,130,246,0.15)',
+  blob3: 'rgba(37,99,235,0.06)',
 
   // Text
   text: {
     primary: 'rgba(255,255,255,1.0)',
     secondary: 'rgba(255,255,255,0.6)',
     tertiary: 'rgba(255,255,255,0.35)',
-    dark: '#0a0a1a',
+    dark: '#ffffff',
   },
 
   // Semantic

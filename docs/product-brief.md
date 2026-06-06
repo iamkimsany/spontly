@@ -1,4 +1,4 @@
-# Spontly — Product Brief
+# Gachi — Product Brief
 
 ## One-liner
 Real-time activity matching app that connects people who want to do the same thing right now but have no one to do it with.
@@ -11,7 +11,7 @@ Real-time activity matching app that connects people who want to do the same thi
 This is not a personal problem — it's universal. A TikTok video where a girl said she feels completely alone received 100,000+ comments saying "same."
 
 ## Solution
-Spontly lets users add activities they want to do. The AI finds other users nearby who want the same thing right now and connects them — instantly, safely, without swiping on looks.
+Gachi lets users add activities they want to do. The AI finds other users nearby who want the same thing right now and connects them — instantly, safely, without swiping on looks.
 
 ## Key Differentiators
 - **Activity-first, not people-first** — you choose what to do, not who to meet

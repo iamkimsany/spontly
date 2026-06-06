@@ -84,7 +84,7 @@ export default function PhoneScreen() {
     <GradientBackground>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.kav}>
         <View style={styles.container}>
-          <Text style={styles.logo}>⚡ Spontly</Text>
+          <Text style={styles.logo}>⚡ Gachi</Text>
 
           {/* Mode toggle */}
           <View style={styles.toggle}>

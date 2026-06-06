@@ -1,4 +1,4 @@
-# Spontly — Setup Guide
+# Gachi — Setup Guide
 
 ## Prerequisites
 - Node.js 18+
@@ -41,9 +41,9 @@ Firebase project `labs-f936a` is wired up:
 - iOS: `com.example.myitemsCrud`
 - Android: `com.example.myitems_crud`
 
-To use your own bundle ID (e.g. `com.spontly.app`):
+To use your own bundle ID (e.g. `com.gachi.app`):
 1. Go to Firebase Console → Project Settings → Add app
-2. Register with `com.spontly.app` (iOS) and `com.spontly.app` (Android)
+2. Register with `com.gachi.app` (iOS) and `com.gachi.app` (Android)
 3. Download the new config files and replace the ones in the project root
 4. Update `ios.bundleIdentifier` and `android.package` in `app.json`
 

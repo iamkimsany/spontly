@@ -1,4 +1,4 @@
-# Spontly — Technical Design
+# Gachi — Technical Design
 
 ## Architecture Overview
 

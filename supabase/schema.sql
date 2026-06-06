@@ -1,4 +1,4 @@
--- Spontly MVP Database Schema
+-- Gachi MVP Database Schema
 -- Run this in Supabase SQL Editor
 
 create extension if not exists "pgcrypto";

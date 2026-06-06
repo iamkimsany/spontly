@@ -79,7 +79,7 @@ export default function GPSConsentScreen() {
   return (
     <GradientBackground>
       <View style={styles.container}>
-        <Text style={styles.logo}>⚡ Spontly</Text>
+        <Text style={styles.logo}>⚡ Gachi</Text>
         <Text style={styles.step}>Step 5 of 5</Text>
 
         <View style={styles.shieldWrap}>
@@ -89,7 +89,7 @@ export default function GPSConsentScreen() {
         <GlassCard variant="strong" style={styles.card}>
           <Text style={styles.title}>GPS consent</Text>
           <Text style={styles.sub}>
-            Spontly uses your location to keep you safe during meetups — and only during meetups.
+            Gachi uses your location to keep you safe during meetups — and only during meetups.
           </Text>
 
           <View style={styles.points}>

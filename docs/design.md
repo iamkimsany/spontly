@@ -1,4 +1,4 @@
-# Spontly — Design Reference
+# Gachi — Design Reference
 
 ## Visual Direction
 Glassmorphism. Frosted glass cards floating over deep navy-to-purple gradient. Every surface is translucent — you feel the depth beneath. Electric lime as the single accent color against dark glass. Warm, trustworthy, modern.

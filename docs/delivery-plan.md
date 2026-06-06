@@ -1,4 +1,4 @@
-# Spontly — Delivery Plan
+# Gachi — Delivery Plan
 
 ## Overview
 | Phase | Goal | Timeline |
