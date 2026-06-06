@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { Star } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { GradientBackground } from '@/components/ui/GradientBackground';
@@ -30,7 +31,7 @@ const DEMO_ALERTS = [
     title: 'Rate your meetup',
     body: 'How was your hike with Jung? Your rating helps the community.',
     time: '3 hrs ago',
-    emoji: '⭐',
+    emoji: 'star',
   },
   {
     id: '4',
@@ -67,7 +68,13 @@ export default function AlertsScreen() {
               style={styles.alertItem}
             >
               <View style={styles.alertRow}>
-                <Text style={styles.alertEmoji}>{alert.emoji}</Text>
+                {alert.emoji === 'star' ? (
+                  <View style={styles.alertIconWrap}>
+                    <Star size={20} color="#2563EB" fill="#2563EB" strokeWidth={1.6} />
+                  </View>
+                ) : (
+                  <Text style={styles.alertEmoji}>{alert.emoji}</Text>
+                )}
                 <View style={{ flex: 1 }}>
                   <Text style={styles.alertTitle}>{alert.title}</Text>
                   <Text style={styles.alertBody}>{alert.body}</Text>
@@ -92,6 +99,7 @@ const styles = StyleSheet.create({
   alertItem: { width: '100%' },
   alertRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   alertEmoji: { fontSize: 22, width: 32 },
+  alertIconWrap: { width: 32, alignItems: 'flex-start', paddingTop: 2 },
   alertTitle: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.base, color: Colors.text.primary },
   alertBody: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.secondary, marginTop: 3, lineHeight: 20 },
   alertTime: { fontFamily: Fonts.body, fontSize: FontSize.xs, color: Colors.text.tertiary, marginLeft: 8, marginTop: 2 },

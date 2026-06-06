@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
-import { Check } from 'lucide-react-native';
+import { Check, Star } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { GradientBackground } from '@/components/ui/GradientBackground';
@@ -113,8 +113,14 @@ export default function ProfileScreen() {
                     <Text style={styles.historyDate}>{h.date} · {h.participants} people</Text>
                   </View>
                   <View style={styles.historyRating}>
-                    {'⭐'.repeat(h.rating).split('').map((s, i) => (
-                      <Text key={i} style={styles.star}>⭐</Text>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Star
+                        key={i}
+                        size={14}
+                        color={i <= h.rating ? '#2563EB' : 'rgba(0,0,0,0.15)'}
+                        fill={i <= h.rating ? '#2563EB' : 'transparent'}
+                        strokeWidth={1.6}
+                      />
                     ))}
                   </View>
                 </View>
@@ -186,8 +192,7 @@ const styles = StyleSheet.create({
   historyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   historyTitle: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.base, color: Colors.text.primary },
   historyDate: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.secondary, marginTop: 2 },
-  historyRating: { flexDirection: 'row' },
-  star: { fontSize: 12 },
+  historyRating: { flexDirection: 'row', gap: 2, alignItems: 'center' },
   settingsCard: { width: '100%', overflow: 'hidden', borderRadius: 20 },
   settingsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, paddingHorizontal: 18 },
   settingsBorder: { borderTopWidth: 1, borderTopColor: Colors.border.subtle },

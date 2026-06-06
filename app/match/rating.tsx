@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Animated,
 } from 'react-native';
+import { Star } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { GradientBackground } from '@/components/ui/GradientBackground';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -18,18 +19,47 @@ interface ParticipantRating {
   comment: string;
 }
 
+/** Single animated star button */
+function StarButton({
+  filled,
+  onPress,
+}: {
+  filled: boolean;
+  onPress: () => void;
+}) {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const handlePress = () => {
+    Animated.sequence([
+      Animated.spring(scale, { toValue: 1.25, useNativeDriver: true, speed: 40, bounciness: 6 }),
+      Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 30, bounciness: 4 }),
+    ]).start();
+    onPress();
+  };
+
+  return (
+    <TouchableOpacity onPress={handlePress} activeOpacity={0.8}>
+      <Animated.View style={{ transform: [{ scale }] }}>
+        <Star
+          size={36}
+          color={filled ? '#2563EB' : 'rgba(0,0,0,0.18)'}
+          fill={filled ? '#2563EB' : 'transparent'}
+          strokeWidth={1.6}
+        />
+      </Animated.View>
+    </TouchableOpacity>
+  );
+}
+
 export default function RatingScreen() {
   const { activeMatch, profile } = useAppStore();
 
-  // If there's no match data (e.g. arrived here after match was already cleared), go home
   React.useEffect(() => {
     if (!activeMatch) {
       router.replace('/(tabs)');
     }
   }, []);
 
-  // Include ALL participants — if only 1 person in match, show them anyway
-  // (profile.id may differ from auth uid after re-login, so don't filter by id)
   const defaultRatings: ParticipantRating[] =
     (activeMatch?.participants ?? [])
       .map((p) => ({ userId: p.userId, name: p.name, score: 0, comment: '' }));
@@ -87,7 +117,11 @@ export default function RatingScreen() {
   return (
     <GradientBackground>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Text style={styles.emoji}>⭐</Text>
+        {/* Header icon — large star */}
+        <View style={styles.headerIcon}>
+          <Star size={52} color="#2563EB" fill="#2563EB" strokeWidth={1.4} />
+        </View>
+
         <Text style={styles.title}>Rate your meetup</Text>
         <Text style={styles.sub}>
           {ratings.length === 0
@@ -106,9 +140,11 @@ export default function RatingScreen() {
 
             <View style={styles.starsRow}>
               {[1, 2, 3, 4, 5].map((star) => (
-                <TouchableOpacity key={star} onPress={() => setScore(r.userId, star)}>
-                  <Text style={[styles.star, r.score >= star && styles.starFilled]}>★</Text>
-                </TouchableOpacity>
+                <StarButton
+                  key={star}
+                  filled={r.score >= star}
+                  onPress={() => setScore(r.userId, star)}
+                />
               ))}
             </View>
 
@@ -162,7 +198,7 @@ export default function RatingScreen() {
 
 const styles = StyleSheet.create({
   scroll: { paddingHorizontal: 24, paddingTop: 64, gap: 16 },
-  emoji: { fontSize: 56, textAlign: 'center' },
+  headerIcon: { alignItems: 'center', marginBottom: 4 },
   title: { fontFamily: Fonts.display, fontSize: FontSize.xl, color: Colors.text.primary, textAlign: 'center' },
   sub: { fontFamily: Fonts.body, fontSize: FontSize.base, color: Colors.text.secondary, textAlign: 'center', lineHeight: 22 },
   ratingCard: { width: '100%' },
@@ -175,9 +211,7 @@ const styles = StyleSheet.create({
   },
   avatarInitial: { fontFamily: Fonts.displayMedium, fontSize: FontSize.md, color: Colors.text.primary },
   personName: { fontFamily: Fonts.display, fontSize: FontSize.md, color: Colors.text.primary },
-  starsRow: { flexDirection: 'row', gap: 12, justifyContent: 'center' },
-  star: { fontSize: 40, color: Colors.text.tertiary },
-  starFilled: { color: '#FACC15' },
+  starsRow: { flexDirection: 'row', gap: 10, justifyContent: 'center', marginBottom: 4 },
   commentArea: { marginTop: 16 },
   commentCard: { borderRadius: 14 },
   commentInput: {
