@@ -335,8 +335,12 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 36,
     borderTopRightRadius: 36,
     overflow: 'hidden',
+    // explicit flex so ScrollView inside BlurView gets a bounded parent
+    display: 'flex',
+    flexDirection: 'column',
   },
   blurSheet: {
+    flex: 1,
     borderTopLeftRadius: 36,
     borderTopRightRadius: 36,
     borderTopWidth: 1,
