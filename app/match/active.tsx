@@ -12,11 +12,10 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { GPSIndicator } from '@/components/ui/GPSIndicator';
 import { SafetyZoneBadge } from '@/components/ui/SafetyZoneBadge';
-import { SOSButton } from '@/components/ui/SOSButton';
 import { Colors } from '@/constants/colors';
 import { Fonts, FontSize } from '@/constants/typography';
 import { useAppStore, SafetyZone } from '@/store';
-import { scheduleLocalNotification, sendSOSNotificationToTrustedContact } from '@/lib/notifications';
+import { scheduleLocalNotification } from '@/lib/notifications';
 import { logSafetyEvent, getChatMessages, sendChatMessage, DbChatMessage, supabase, updateMatchStatus, updateGpsActive } from '@/lib/supabase';
 
 interface ChatMsg {
@@ -46,7 +45,6 @@ export default function ActiveMeetupScreen() {
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [inputText, setInputText] = useState('');
   const [elapsed, setElapsed] = useState(0);
-  const [showSOSAlert, setShowSOSAlert] = useState(false);
   const [activeTab, setActiveTab] = useState<'map' | 'chat'>('map');
   const scrollRef = useRef<ScrollView>(null);
   const locationSub = useRef<Location.LocationSubscription | null>(null);
@@ -182,13 +180,6 @@ export default function ActiveMeetupScreen() {
 
   const handleSOS = async () => {
     setSafetyZone('sos');
-    setShowSOSAlert(true);
-    // Send alert to trusted contact (notification only — no real calls)
-    sendSOSNotificationToTrustedContact(
-      profile?.trustedContact ?? 'your trusted contact',
-      profile?.name ?? 'User',
-      currentLocation
-    );
     if (activeMatch) {
       logSafetyEvent({
         match_id: activeMatch.id,
@@ -331,9 +322,8 @@ export default function ActiveMeetupScreen() {
                 label="End Meetup"
                 iconAfter={<Check size={16} color="#ffffff" strokeWidth={2.5} />}
                 onPress={handleCompleteActivity}
-                style={{ flex: 1 }}
+                fullWidth
               />
-              <SOSButton onSOS={handleSOS} />
             </View>
           </View>
         ) : (
@@ -380,37 +370,6 @@ export default function ActiveMeetupScreen() {
       </View>
       </SafeAreaView>
 
-      {/* SOS Alert Modal — no real calls, in-app only */}
-      <Modal visible={showSOSAlert} transparent animationType="fade">
-        <View style={styles.sosOverlay}>
-          <GlassCard variant="strong" padding={32} style={styles.sosModal}>
-            <Text style={styles.sosIcon}>🆘</Text>
-            <Text style={styles.sosTitle}>SOS Triggered</Text>
-            <Text style={styles.sosSub}>
-              An emergency alert has been sent to your trusted contact with your current location.
-              Stay where you are if it is safe to do so.
-            </Text>
-            <GlassCard variant="subtle" padding={14} style={styles.sosContact}>
-              <Text style={styles.sosContactLabel}>Alert sent to:</Text>
-              <Text style={styles.sosContactValue}>{profile?.trustedContact ?? 'Trusted contact'}</Text>
-              {currentLocation && (
-                <Text style={styles.sosLocation}>
-                  📍 {currentLocation.latitude.toFixed(5)}, {currentLocation.longitude.toFixed(5)}
-                </Text>
-              )}
-            </GlassCard>
-            <Text style={styles.sosNote}>
-              ⚠️ Call emergency services (112) yourself if you are in immediate danger.
-            </Text>
-            <TouchableOpacity
-              onPress={() => setShowSOSAlert(false)}
-              style={styles.sosDismiss}
-            >
-              <Text style={styles.sosDismissText}>I am safe — Dismiss</Text>
-            </TouchableOpacity>
-          </GlassCard>
-        </View>
-      </Modal>
     </GradientBackground>
   );
 }
@@ -505,24 +464,4 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   sendIcon: { fontSize: 16, color: Colors.text.dark },
-  sosOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', paddingHorizontal: 24 },
-  sosModal: { width: '100%', alignItems: 'center' },
-  sosIcon: { fontSize: 64, marginBottom: 8 },
-  sosTitle: { fontFamily: Fonts.display, fontSize: FontSize.xl, color: Colors.sos, marginBottom: 12 },
-  sosSub: { fontFamily: Fonts.body, fontSize: FontSize.base, color: Colors.text.primary, textAlign: 'center', lineHeight: 24, marginBottom: 16 },
-  sosContact: { width: '100%', borderRadius: 14 },
-  sosContactLabel: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.secondary },
-  sosContactValue: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.md, color: Colors.text.primary, marginTop: 4 },
-  sosLocation: { fontFamily: Fonts.body, fontSize: FontSize.xs, color: Colors.text.tertiary, marginTop: 6 },
-  sosNote: {
-    fontFamily: Fonts.bodyMedium, fontSize: FontSize.sm, color: Colors.warning,
-    textAlign: 'center', marginTop: 16, marginBottom: 8, lineHeight: 20,
-  },
-  sosDismiss: {
-    backgroundColor: Colors.glass.regular,
-    borderRadius: 9999, paddingVertical: 14, paddingHorizontal: 28,
-    borderWidth: 1, borderColor: Colors.border.regular,
-    marginTop: 8,
-  },
-  sosDismissText: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.base, color: Colors.text.primary },
 });
