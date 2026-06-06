@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Check } from 'lucide-react-native';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput,
   Modal, KeyboardAvoidingView, Platform,
@@ -327,7 +328,8 @@ export default function ActiveMeetupScreen() {
             {/* Fixed bottom bar — outside ScrollView so touches are never intercepted */}
             <View style={styles.actions}>
               <PrimaryButton
-                label="End Meetup ✓"
+                label="End Meetup"
+                iconAfter={<Check size={16} color="#ffffff" strokeWidth={2.5} />}
                 onPress={handleCompleteActivity}
                 style={{ flex: 1 }}
               />

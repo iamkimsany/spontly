@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { Check } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GradientBackground } from '@/components/ui/GradientBackground';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -49,7 +50,8 @@ export default function ListScreen() {
                     const isActive = isMatched && (activeMatch?.status === 'pending' || activeMatch?.status === 'confirmed');
                     if (isCompleted) return (
                       <View style={[styles.publicPill, styles.completedPill]}>
-                        <Text style={[styles.publicText, styles.completedText]}>Completed ✓</Text>
+                        <Check size={12} color="#2563EB" strokeWidth={2.5} />
+                        <Text style={[styles.publicText, styles.completedText]}>Completed</Text>
                       </View>
                     );
                     if (isActive) return (
@@ -123,7 +125,7 @@ const styles = StyleSheet.create({
   itemTitle: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.base, color: Colors.text.primary },
   itemCat: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.tertiary, marginTop: 2 },
   itemRight: { gap: 6, alignItems: 'flex-end' },
-  publicPill: { backgroundColor: Colors.accentSoft, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 9999, borderWidth: 1, borderColor: Colors.border.accent },
+  publicPill: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Colors.accentSoft, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 9999, borderWidth: 1, borderColor: Colors.border.accent },
   publicText: { fontFamily: Fonts.bodyMedium, fontSize: 10, color: Colors.accent },
   completedPill: { backgroundColor: 'rgba(34,197,94,0.15)', borderColor: 'rgba(34,197,94,0.4)' },
   completedText: { color: '#4ade80' },

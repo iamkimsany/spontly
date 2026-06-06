@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
+import { Check } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { GradientBackground } from '@/components/ui/GradientBackground';
@@ -9,11 +10,6 @@ import { GPSIndicator } from '@/components/ui/GPSIndicator';
 import { Colors } from '@/constants/colors';
 import { Fonts, FontSize } from '@/constants/typography';
 import { useAppStore } from '@/store';
-
-const COMPANIONS_DEMO = [
-  { name: 'Jung', activity: 'Hiking', initials: 'JK' },
-  { name: 'Sara', activity: 'Sketching', initials: 'SM' },
-];
 
 const HISTORY_DEMO = [
   { id: '1', title: 'Bukhansan Hike', date: 'Jun 1, 2026', rating: 5, participants: 2 },
@@ -82,7 +78,11 @@ export default function ProfileScreen() {
             <View style={styles.trustLabels}>
               {trustLabels.map((t) => (
                 <View key={t.label} style={styles.trustRow}>
-                  <Text style={styles.trustDot}>{t.done ? '✅' : '○'}</Text>
+                  <View style={styles.trustIcon}>
+                    {t.done
+                      ? <Check size={16} color="#2563EB" strokeWidth={2.5} />
+                      : <View style={styles.trustCircle} />}
+                  </View>
                   <Text style={[styles.trustLabel, !t.done && styles.trustLabelOff]}>{t.label}</Text>
                 </View>
               ))}
@@ -94,25 +94,10 @@ export default function ProfileScreen() {
             {[
               { value: String(HISTORY_DEMO.length), label: 'Activities' },
               { value: '4.8', label: 'Avg rating' },
-              { value: String(COMPANIONS_DEMO.length), label: 'Companions' },
             ].map((stat) => (
               <GlassCard key={stat.label} variant="regular" padding={16} style={styles.statCard}>
                 <Text style={styles.statValue}>{stat.value}</Text>
                 <Text style={styles.statLabel}>{stat.label}</Text>
-              </GlassCard>
-            ))}
-          </View>
-
-          {/* Companions */}
-          <Text style={styles.sectionTitle}>Companions</Text>
-          <View style={styles.companionsRow}>
-            {COMPANIONS_DEMO.map((c) => (
-              <GlassCard key={c.name} variant="regular" padding={16} style={styles.companionCard}>
-                <View style={styles.companionAvatar}>
-                  <Text style={styles.companionInitial}>{c.initials}</Text>
-                </View>
-                <Text style={styles.companionName}>{c.name}</Text>
-                <Text style={styles.companionActivity}>{c.activity}</Text>
               </GlassCard>
             ))}
           </View>
@@ -187,7 +172,8 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: Colors.border.subtle, marginVertical: 16 },
   trustLabels: { gap: 8 },
   trustRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
-  trustDot: { fontSize: 14, width: 20 },
+  trustIcon: { width: 20, alignItems: 'center', justifyContent: 'center' },
+  trustCircle: { width: 14, height: 14, borderRadius: 7, borderWidth: 1.5, borderColor: Colors.text.tertiary },
   trustLabel: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.secondary },
   trustLabelOff: { color: Colors.text.tertiary },
   statsRow: { flexDirection: 'row', gap: 10 },
@@ -195,17 +181,6 @@ const styles = StyleSheet.create({
   statValue: { fontFamily: Fonts.display, fontSize: FontSize.lg, color: Colors.accent },
   statLabel: { fontFamily: Fonts.body, fontSize: FontSize.xs, color: Colors.text.secondary, marginTop: 4 },
   sectionTitle: { fontFamily: Fonts.displayMedium, fontSize: FontSize.base, color: Colors.text.primary },
-  companionsRow: { flexDirection: 'row', gap: 10 },
-  companionCard: { flex: 1, alignItems: 'center', gap: 6 },
-  companionAvatar: {
-    width: 48, height: 48, borderRadius: 24,
-    backgroundColor: Colors.glass.strong,
-    borderWidth: 1.5, borderColor: Colors.border.regular,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  companionInitial: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.base, color: Colors.text.primary },
-  companionName: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.sm, color: Colors.text.primary },
-  companionActivity: { fontFamily: Fonts.body, fontSize: FontSize.xs, color: Colors.text.tertiary },
   historyList: { gap: 8 },
   historyItem: { width: '100%' },
   historyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

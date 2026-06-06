@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, ViewStyle, ActivityIndicator, View } from 'react-native';
 import { Colors } from '@/constants/colors';
 import { Fonts, FontSize } from '@/constants/typography';
 
@@ -10,9 +10,11 @@ interface Props {
   disabled?: boolean;
   style?: ViewStyle;
   fullWidth?: boolean;
+  /** Optional icon rendered after the label */
+  iconAfter?: React.ReactNode;
 }
 
-export function PrimaryButton({ label, onPress, loading, disabled, style, fullWidth }: Props) {
+export function PrimaryButton({ label, onPress, loading, disabled, style, fullWidth, iconAfter }: Props) {
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -28,7 +30,10 @@ export function PrimaryButton({ label, onPress, loading, disabled, style, fullWi
       {loading ? (
         <ActivityIndicator color={Colors.text.dark} />
       ) : (
-        <Text style={styles.label}>{label}</Text>
+        <View style={styles.inner}>
+          <Text style={styles.label}>{label}</Text>
+          {iconAfter ? <View style={styles.iconWrap}>{iconAfter}</View> : null}
+        </View>
       )}
     </TouchableOpacity>
   );
@@ -55,10 +60,18 @@ const styles = StyleSheet.create({
   disabled: {
     opacity: 0.4,
   },
+  inner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   label: {
     fontFamily: Fonts.bodySemiBold,
     fontSize: FontSize.base,
     color: Colors.text.dark,
     letterSpacing: 0.2,
+  },
+  iconWrap: {
+    marginTop: 1,
   },
 });

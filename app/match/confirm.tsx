@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Check } from 'lucide-react-native';
 import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
@@ -142,7 +143,8 @@ export default function ConfirmMeetupScreen() {
 
         <View style={styles.actions}>
           <PrimaryButton
-            label="Confirm Meetup ✓"
+            label="Confirm Meetup"
+            iconAfter={<Check size={16} color="#ffffff" strokeWidth={2.5} />}
             onPress={handleConfirm}
             loading={confirming}
             disabled={!gpsReady}
