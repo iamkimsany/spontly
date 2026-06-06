@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     gap: 16,
     justifyContent: 'center',
   },
-  logo: { width: 120, height: 40, alignSelf: 'center' },
+  logo: { width: 200, height: 80, alignSelf: 'center' },
   step: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.tertiary, textAlign: 'center' },
   shieldWrap: { alignItems: 'center' },
   shieldIcon: { fontSize: 64 },

@@ -154,7 +154,7 @@ export default function PhoneScreen() {
 const styles = StyleSheet.create({
   kav: { flex: 1 },
   container: { flex: 1, paddingHorizontal: 24, paddingTop: 80, justifyContent: 'center', gap: 16 },
-  logo: { width: 120, height: 40, alignSelf: 'center' },
+  logo: { width: 200, height: 80, alignSelf: 'center' },
   toggle: {
     flexDirection: 'row',
     backgroundColor: Colors.glass.subtle,
