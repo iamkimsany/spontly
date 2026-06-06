@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl,
 } from 'react-native';
+import { Settings } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GradientBackground } from '@/components/ui/GradientBackground';
@@ -101,8 +102,8 @@ export default function HomeScreen() {
                 <Text style={styles.greeting}>{greeting()}, {profile?.name ?? 'there'} 👋</Text>
                 <Text style={styles.date}>{dateStr}</Text>
               </View>
-              <TouchableOpacity onPress={() => router.push('/(tabs)/profile')} style={styles.settingsBtn}>
-                <Text style={styles.settingsIcon}>⚙️</Text>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/profile')} style={styles.settingsBtn} activeOpacity={0.5}>
+                <Settings size={22} color="rgba(0,0,0,0.4)" />
               </TouchableOpacity>
             </View>
             <GPSIndicator active={gpsActive} />
@@ -211,7 +212,6 @@ const styles = StyleSheet.create({
   greeting: { fontFamily: Fonts.display, fontSize: FontSize.md, color: Colors.text.primary },
   date: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.secondary, marginTop: 2 },
   settingsBtn: { padding: 8 },
-  settingsIcon: { fontSize: 20 },
   matchBanner: { width: '100%' },
   matchTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
   matchBottomRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 14 },
