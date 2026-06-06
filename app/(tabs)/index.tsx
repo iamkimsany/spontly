@@ -111,20 +111,25 @@ export default function HomeScreen() {
           {/* Active match banner */}
           {activeMatch ? (
             <GlassCard variant="active" padding={20} style={styles.matchBanner}>
-              <View style={styles.matchRow}>
-                <View>
-                  <Text style={styles.matchLabel}>🔥 Active Match</Text>
-                  <Text style={styles.matchTitle}>{activeMatch.activityTitle}</Text>
-                  <View style={styles.matchParticipants}>
-                    {activeMatch.participants.slice(0, 3).map((p, i) => (
-                      <View key={i} style={[styles.avatar, { marginLeft: i > 0 ? -8 : 0 }]}>
-                        <Text style={styles.avatarText}>{p.name[0]}</Text>
-                      </View>
-                    ))}
-                    {activeMatch.participants.length > 3 && (
-                      <Text style={styles.moreText}>+{activeMatch.participants.length - 3}</Text>
-                    )}
-                  </View>
+              {/* Top row: label + NOW badge */}
+              <View style={styles.matchTopRow}>
+                <Text style={styles.matchLabel}>🔥 Active Match</Text>
+                <View style={styles.matchNow}>
+                  <Text style={styles.nowText}>NOW</Text>
+                </View>
+              </View>
+              <Text style={styles.matchTitle}>{activeMatch.activityTitle}</Text>
+              {/* Bottom row: avatars + View button */}
+              <View style={styles.matchBottomRow}>
+                <View style={styles.matchParticipants}>
+                  {activeMatch.participants.slice(0, 3).map((p, i) => (
+                    <View key={i} style={[styles.avatar, { marginLeft: i > 0 ? -8 : 0 }]}>
+                      <Text style={styles.avatarText}>{p.name[0]}</Text>
+                    </View>
+                  ))}
+                  {activeMatch.participants.length > 3 && (
+                    <Text style={styles.moreText}>+{activeMatch.participants.length - 3}</Text>
+                  )}
                 </View>
                 <TouchableOpacity
                   style={styles.viewMatchBtn}
@@ -132,9 +137,6 @@ export default function HomeScreen() {
                 >
                   <Text style={styles.viewMatchText}>View →</Text>
                 </TouchableOpacity>
-              </View>
-              <View style={styles.matchNow}>
-                <Text style={styles.nowText}>NOW</Text>
               </View>
             </GlassCard>
           ) : (
@@ -177,14 +179,14 @@ export default function HomeScreen() {
           <Text style={styles.sectionTitle}>Nearby Right Now</Text>
           <View style={styles.nearbyList}>
             {NEARBY_DEMO.map((item) => (
-              <TouchableOpacity key={item.id} onPress={() => router.push('/match/found')}>
+              <TouchableOpacity key={item.id} style={styles.nearbyTouchable} onPress={() => router.push('/match/found')}>
                 <GlassCard variant="regular" padding={{ vertical: 14, horizontal: 18 }} style={styles.nearbyRow}>
                   <Text style={styles.nearbyEmoji}>{item.category}</Text>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.nearbyName}>{item.name}</Text>
                     <Text style={styles.nearbyActivity}>{item.activity}</Text>
                   </View>
-                  <View>
+                  <View style={styles.nearbyRight}>
                     <Text style={styles.nearbyTime}>{item.time}</Text>
                     <Text style={styles.nearbyArrow}>→</Text>
                   </View>
@@ -210,11 +212,12 @@ const styles = StyleSheet.create({
   date: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.secondary, marginTop: 2 },
   settingsBtn: { padding: 8 },
   settingsIcon: { fontSize: 20 },
-  matchBanner: { width: '100%', position: 'relative' },
-  matchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  matchLabel: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.sm, color: Colors.accent, marginBottom: 4 },
+  matchBanner: { width: '100%' },
+  matchTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
+  matchBottomRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 14 },
+  matchLabel: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.sm, color: Colors.accent },
   matchTitle: { fontFamily: Fonts.display, fontSize: FontSize.md, color: Colors.text.primary },
-  matchParticipants: { flexDirection: 'row', marginTop: 10 },
+  matchParticipants: { flexDirection: 'row' },
   avatar: {
     width: 28, height: 28, borderRadius: 14,
     backgroundColor: Colors.glass.strong,
@@ -231,9 +234,6 @@ const styles = StyleSheet.create({
   },
   viewMatchText: { fontFamily: Fonts.bodySemiBold, fontSize: FontSize.sm, color: Colors.text.dark },
   matchNow: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
     backgroundColor: Colors.accentSoft,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -265,10 +265,12 @@ const styles = StyleSheet.create({
   chipTime: { fontFamily: Fonts.body, fontSize: FontSize.xs, color: Colors.text.tertiary, marginTop: 2 },
   publicDot: { fontSize: 8, color: Colors.accent, marginTop: 6 },
   nearbyList: { gap: 10 },
-  nearbyRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  nearbyTouchable: { width: '100%' },
+  nearbyRow: { flexDirection: 'row', alignItems: 'center', gap: 12, width: '100%' },
   nearbyEmoji: { fontSize: 24, width: 36 },
   nearbyName: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.base, color: Colors.text.primary },
   nearbyActivity: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.secondary, marginTop: 2 },
-  nearbyTime: { fontFamily: Fonts.body, fontSize: FontSize.xs, color: Colors.text.tertiary, textAlign: 'right' },
-  nearbyArrow: { fontFamily: Fonts.body, fontSize: FontSize.base, color: Colors.accent, textAlign: 'right', marginTop: 4 },
+  nearbyRight: { alignItems: 'flex-end' },
+  nearbyTime: { fontFamily: Fonts.body, fontSize: FontSize.xs, color: Colors.text.tertiary },
+  nearbyArrow: { fontFamily: Fonts.body, fontSize: FontSize.base, color: Colors.accent, marginTop: 4 },
 });
