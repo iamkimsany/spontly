@@ -13,8 +13,8 @@ export function GradientBackground({ children, style }: Props) {
     <LinearGradient
       colors={[Colors.bg.start, Colors.bg.mid1, Colors.bg.mid2, Colors.bg.end]}
       locations={[0, 0.3, 0.6, 1]}
-      start={{ x: 0.15, y: 0 }}
-      end={{ x: 0.85, y: 1 }}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
       style={[styles.container, style]}
     >
       {/* Decorative blobs — pointerEvents none so they never intercept touches */}

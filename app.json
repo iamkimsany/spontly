@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "light",
     "scheme": "gachi",
     "ios": {
       "supportsTablet": false,
@@ -22,7 +22,7 @@
       "package": "com.example.myitems_crud",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "backgroundColor": "#0a0f1e",
+        "backgroundColor": "#f0f4ff",
         "foregroundImage": "./assets/icon.png"
       },
       "permissions": [

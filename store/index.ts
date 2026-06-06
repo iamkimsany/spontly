@@ -88,7 +88,7 @@ interface AppState {
 
 export const useAppStore = create<AppState>((set) => ({
   isAuthenticated: false,
-  onboardingComplete: false,
+  onboardingComplete: true,
   registrationStep: 'phone',
   tempPhone: '',
   profile: null,

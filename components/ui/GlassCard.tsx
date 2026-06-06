@@ -28,7 +28,7 @@ export function GlassCard({ children, variant = 'regular', style, padding }: Pro
     : { paddingVertical: 20, paddingHorizontal: 24 };
 
   return (
-    <BlurView intensity={config.blur} tint="dark" style={[styles.blur, style]}>
+    <BlurView intensity={config.blur} tint="light" style={[styles.blur, style]}>
       <View
         style={[
           styles.inner,
