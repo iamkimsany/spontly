@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { View, Text, Image, StyleSheet, Alert } from 'react-native';
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
 import { GradientBackground } from '@/components/ui/GradientBackground';
@@ -79,7 +79,7 @@ export default function GPSConsentScreen() {
   return (
     <GradientBackground>
       <View style={styles.container}>
-        <Text style={styles.logo}>⚡ Gachi</Text>
+        <Image source={require("@/assets/gachi-logo.png")} style={styles.logo} resizeMode="contain" />
         <Text style={styles.step}>Step 5 of 5</Text>
 
         <View style={styles.shieldWrap}>
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     gap: 16,
     justifyContent: 'center',
   },
-  logo: { fontFamily: Fonts.display, fontSize: FontSize.xl, color: Colors.accent, textAlign: 'center' },
+  logo: { width: 120, height: 40, alignSelf: 'center' },
   step: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.tertiary, textAlign: 'center' },
   shieldWrap: { alignItems: 'center' },
   shieldIcon: { fontSize: 64 },

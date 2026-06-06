@@ -109,7 +109,7 @@ export default function ProfileSetupScreen() {
   return (
     <GradientBackground>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <Text style={styles.logo}>⚡ Gachi</Text>
+        <Image source={require("@/assets/gachi-logo.png")} style={styles.logo} resizeMode="contain" />
         <Text style={styles.step}>Step 3 of 5</Text>
 
         <GlassCard variant="strong" style={styles.card}>
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     gap: 16,
   },
-  logo: { fontFamily: Fonts.display, fontSize: FontSize.xl, color: Colors.accent, textAlign: 'center' },
+  logo: { width: 120, height: 40, alignSelf: 'center' },
   step: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.tertiary, textAlign: 'center' },
   card: { width: '100%' },
   title: { fontFamily: Fonts.display, fontSize: FontSize.lg, color: Colors.text.primary, marginBottom: 8 },

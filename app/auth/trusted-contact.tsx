@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, Image, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { GradientBackground } from '@/components/ui/GradientBackground';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -32,7 +32,7 @@ export default function TrustedContactScreen() {
         style={{ flex: 1 }}
       >
         <View style={styles.container}>
-          <Text style={styles.logo}>⚡ Gachi</Text>
+          <Image source={require("@/assets/gachi-logo.png")} style={styles.logo} resizeMode="contain" />
           <Text style={styles.step}>Step 4 of 5</Text>
 
           <GlassCard variant="strong" style={styles.card}>
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 16,
   },
-  logo: { fontFamily: Fonts.display, fontSize: FontSize.xl, color: Colors.accent, textAlign: 'center' },
+  logo: { width: 120, height: 40, alignSelf: 'center' },
   step: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.tertiary, textAlign: 'center' },
   card: { width: '100%' },
   title: { fontFamily: Fonts.display, fontSize: FontSize.lg, color: Colors.text.primary, marginBottom: 8 },

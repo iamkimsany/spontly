@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { GradientBackground } from '@/components/ui/GradientBackground';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -84,7 +84,7 @@ export default function PhoneScreen() {
     <GradientBackground>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.kav}>
         <View style={styles.container}>
-          <Text style={styles.logo}>⚡ Gachi</Text>
+          <Image source={require("@/assets/gachi-logo.png")} style={styles.logo} resizeMode="contain" />
 
           {/* Mode toggle */}
           <View style={styles.toggle}>
@@ -154,7 +154,7 @@ export default function PhoneScreen() {
 const styles = StyleSheet.create({
   kav: { flex: 1 },
   container: { flex: 1, paddingHorizontal: 24, paddingTop: 80, justifyContent: 'center', gap: 16 },
-  logo: { fontFamily: Fonts.display, fontSize: FontSize.xl, color: Colors.accent, textAlign: 'center' },
+  logo: { width: 120, height: 40, alignSelf: 'center' },
   toggle: {
     flexDirection: 'row',
     backgroundColor: Colors.glass.subtle,
