@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, Modal, TouchableOpacity, Animated, ScrollView,
-  TouchableWithoutFeedback, Switch, Alert, TextInput, Platform,
+  TouchableWithoutFeedback, Switch, Alert, TextInput,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Colors } from '@/constants/colors';
@@ -23,14 +23,19 @@ const TIMEFRAMES = [
   { id: 'someday', label: 'Someday' },
 ] as const;
 
+const GROUP_SIZES = [3, 4, 5, 6, 8, '10+'] as const;
+type GroupSize = typeof GROUP_SIZES[number];
+
 export function AddActivitySheet({ visible, onClose }: Props) {
   const [category, setCategory] = useState<CategoryId | null>(null);
   const [title, setTitle] = useState('');
   const [timeframe, setTimeframe] = useState<'today' | 'this_week' | 'someday'>('today');
   const [isPublic, setIsPublic] = useState(true);
+  const [meetingType, setMeetingType] = useState<'solo' | 'group'>('solo');
+  const [maxGroupSize, setMaxGroupSize] = useState<GroupSize>(5);
   const [loading, setLoading] = useState(false);
   const slideAnim = useRef(new Animated.Value(700)).current;
-  const { addActivity, profile, setActiveMatch, setPendingMatches, pendingMatches } = useAppStore();
+  const { addActivity, profile, setActiveMatch } = useAppStore();
 
   useEffect(() => {
     if (visible) {
@@ -54,6 +59,8 @@ export function AddActivitySheet({ visible, onClose }: Props) {
     setTitle('');
     setTimeframe('today');
     setIsPublic(true);
+    setMeetingType('solo');
+    setMaxGroupSize(5);
   };
 
   const handleAdd = async () => {
@@ -63,14 +70,15 @@ export function AddActivitySheet({ visible, onClose }: Props) {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const authUid = sessionData.session?.user?.id ?? null;
-      console.log('[AddActivity] auth.uid():', authUid);
-      console.log('[AddActivity] profile.id:', profile?.id);
-
       const userId = profile?.id ?? authUid;
       if (!userId) {
         Alert.alert('Not signed in', 'Please complete registration before adding activities.');
         return;
       }
+
+      const resolvedMaxSize = meetingType === 'group'
+        ? (maxGroupSize === '10+' ? 10 : Number(maxGroupSize))
+        : null;
 
       const payload = {
         user_id: userId,
@@ -78,8 +86,10 @@ export function AddActivitySheet({ visible, onClose }: Props) {
         title: title.trim(),
         timeframe,
         is_public: isPublic,
+        meeting_type: meetingType,
+        max_group_size: resolvedMaxSize,
       };
-      console.log('[AddActivity] Inserting into Supabase:', JSON.stringify(payload, null, 2));
+      console.log('[AddActivity] Inserting:', JSON.stringify(payload, null, 2));
 
       let savedId: string;
       try {
@@ -87,12 +97,7 @@ export function AddActivitySheet({ visible, onClose }: Props) {
         savedId = saved.id;
         console.log('[AddActivity] Insert SUCCESS — id:', savedId);
       } catch (dbErr: any) {
-        console.error(
-          '[AddActivity] Insert FAILED — message:', dbErr?.message,
-          '| code:', dbErr?.code,
-          '| details:', dbErr?.details,
-          '| hint:', dbErr?.hint
-        );
+        console.error('[AddActivity] Insert FAILED:', dbErr?.message);
         Alert.alert(
           'Could not save to database',
           `${dbErr?.message ?? 'Unknown error'}\n\nActivity saved locally only.`
@@ -113,17 +118,12 @@ export function AddActivitySheet({ visible, onClose }: Props) {
       reset();
       onClose();
 
-      if (isPublic && !savedId.startsWith('local_')) {
+      // Only run 1:1 matching for solo activities
+      if (isPublic && meetingType === 'solo' && !savedId.startsWith('local_')) {
         const activityTitle = title.trim();
-        console.log('[AddActivity] Activity is public — running matching for id:', savedId);
         runMatching(savedId)
           .then(async (result) => {
-            if (!result) {
-              console.log('[AddActivity] Matching: no candidates yet');
-              return;
-            }
-            console.log('[AddActivity] Matching: MATCH CREATED —', JSON.stringify(result));
-
+            if (!result) return;
             try {
               const raw = await getMatchWithParticipants(result.matchId);
               if (raw) {
@@ -146,19 +146,17 @@ export function AddActivitySheet({ visible, onClose }: Props) {
                   createdAt: raw.created_at,
                 };
                 setActiveMatch(storeMatch);
-                console.log('[AddActivity] Store updated with active match');
               }
             } catch (fetchErr: any) {
-              console.warn('[AddActivity] Could not load match details (RLS policy may be missing):', fetchErr?.message);
+              console.warn('[AddActivity] Could not load match details:', fetchErr?.message);
             }
-
             scheduleLocalNotification(
               '🔥 Match found!',
               `Someone nearby also wants to: ${activityTitle}. Tap to view.`
             );
           })
           .catch((err) => {
-            console.error('[AddActivity] Matching RPC error:', err?.message, err?.code, err?.hint);
+            console.error('[AddActivity] Matching RPC error:', err?.message);
           });
       }
     } finally {
@@ -167,23 +165,23 @@ export function AddActivitySheet({ visible, onClose }: Props) {
   };
 
   const placeholder = CATEGORIES.find((c) => c.id === category)?.examples ?? 'e.g. Hiking at Bukhansan';
+  const isGroup = meetingType === 'group';
+  const buttonLabel = loading
+    ? (isGroup ? 'Creating…' : 'Adding…')
+    : (isGroup ? 'Create Group Activity 🎉' : 'Add to my list +');
 
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
-      {/* Backdrop */}
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.backdrop} />
       </TouchableWithoutFeedback>
 
-      {/* Sheet */}
       <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}>
         <BlurView intensity={50} tint="dark" style={styles.blurSheet}>
-          {/* Inner dark tint overlay */}
           <View style={StyleSheet.absoluteFill} pointerEvents="none">
             <View style={styles.darkOverlay} />
           </View>
 
-          {/* Handle */}
           <View style={styles.handle} />
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -209,7 +207,7 @@ export function AddActivitySheet({ visible, onClose }: Props) {
               ))}
             </View>
 
-            {/* Input */}
+            {/* Title input */}
             <Text style={styles.label}>What specifically?</Text>
             <TextInput
               value={title}
@@ -238,6 +236,61 @@ export function AddActivitySheet({ visible, onClose }: Props) {
               ))}
             </View>
 
+            {/* ── MEET AS ── */}
+            <Text style={styles.label}>Meet as</Text>
+            <View style={styles.segmentRow}>
+              {/* 1:1 Match */}
+              <TouchableOpacity
+                activeOpacity={0.75}
+                onPress={() => setMeetingType('solo')}
+                style={[styles.segmentBtn, !isGroup && styles.segmentBtnActive]}
+              >
+                <Text style={styles.segmentEmoji}>👤</Text>
+                <Text style={[styles.segmentBtnLabel, !isGroup && styles.segmentBtnLabelActive]}>
+                  1:1 Match
+                </Text>
+                <Text style={[styles.segmentDesc, !isGroup && styles.segmentDescActive]}>
+                  AI finds you one person
+                </Text>
+              </TouchableOpacity>
+
+              {/* Group */}
+              <TouchableOpacity
+                activeOpacity={0.75}
+                onPress={() => setMeetingType('group')}
+                style={[styles.segmentBtn, isGroup && styles.segmentBtnActive]}
+              >
+                <Text style={styles.segmentEmoji}>🎉</Text>
+                <Text style={[styles.segmentBtnLabel, isGroup && styles.segmentBtnLabelActive]}>
+                  Group
+                </Text>
+                <Text style={[styles.segmentDesc, isGroup && styles.segmentDescActive]}>
+                  Anyone nearby can join
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Max group size — only shown when Group is selected */}
+            {isGroup && (
+              <>
+                <Text style={styles.label}>Max people</Text>
+                <View style={styles.sizeRow}>
+                  {GROUP_SIZES.map((s) => (
+                    <TouchableOpacity
+                      key={String(s)}
+                      activeOpacity={0.7}
+                      onPress={() => setMaxGroupSize(s)}
+                      style={[styles.sizeChip, maxGroupSize === s && styles.sizeChipActive]}
+                    >
+                      <Text style={[styles.sizeLabel, maxGroupSize === s && styles.sizeLabelActive]}>
+                        {s}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            )}
+
             {/* Visibility toggle */}
             <View style={styles.visibilityCard}>
               <View style={styles.visibilityText}>
@@ -253,16 +306,14 @@ export function AddActivitySheet({ visible, onClose }: Props) {
               />
             </View>
 
-            {/* Add button */}
+            {/* Submit button */}
             <TouchableOpacity
               onPress={handleAdd}
               activeOpacity={0.85}
               disabled={loading}
               style={[styles.addButton, loading && { opacity: 0.6 }]}
             >
-              <Text style={styles.addButtonText}>
-                {loading ? 'Adding…' : 'Add to my list +'}
-              </Text>
+              <Text style={styles.addButtonText}>{buttonLabel}</Text>
             </TouchableOpacity>
           </ScrollView>
         </BlurView>
@@ -279,9 +330,7 @@ const styles = StyleSheet.create({
   },
   sheet: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    bottom: 0, left: 0, right: 0,
     maxHeight: '92%',
     borderTopLeftRadius: 36,
     borderTopRightRadius: 36,
@@ -308,17 +357,14 @@ const styles = StyleSheet.create({
     paddingBottom: 48,
   },
   handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
+    width: 40, height: 4, borderRadius: 2,
     backgroundColor: 'rgba(255,255,255,0.35)',
     alignSelf: 'center',
-    marginTop: 14,
-    marginBottom: 24,
+    marginTop: 14, marginBottom: 24,
   },
   title: {
     fontFamily: Fonts.display,
-    fontSize: FontSize.xl ?? 26,
+    fontSize: FontSize.xl,
     color: '#ffffff',
     marginBottom: 6,
     letterSpacing: -0.3,
@@ -342,111 +388,125 @@ const styles = StyleSheet.create({
   // Category chips
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingVertical: 8, paddingHorizontal: 14,
     borderRadius: 9999,
     backgroundColor: 'rgba(255,255,255,0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
   },
   chipActive: {
     backgroundColor: 'rgba(37,99,235,0.22)',
     borderColor: 'rgba(37,99,235,0.55)',
   },
   chipEmoji: { fontSize: 15 },
-  chipLabel: {
-    fontFamily: Fonts.body,
-    fontSize: FontSize.sm,
-    color: 'rgba(255,255,255,0.75)',
-  },
-  chipLabelActive: {
-    color: '#ffffff',
-    fontFamily: Fonts.bodyMedium,
-  },
+  chipLabel: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: 'rgba(255,255,255,0.75)' },
+  chipLabelActive: { color: '#ffffff', fontFamily: Fonts.bodyMedium },
 
-  // Input
+  // Text input
   input: {
     backgroundColor: 'rgba(255,255,255,0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
     borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingVertical: 14, paddingHorizontal: 16,
     color: '#ffffff',
-    fontFamily: Fonts.body,
-    fontSize: FontSize.base,
+    fontFamily: Fonts.body, fontSize: FontSize.base,
   },
 
   // Timeframe
   timeRow: { flexDirection: 'row', gap: 10 },
   timeChip: {
-    flex: 1,
-    paddingVertical: 11,
-    borderRadius: 9999,
+    flex: 1, paddingVertical: 11, borderRadius: 9999,
     backgroundColor: 'rgba(255,255,255,0.07)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
     alignItems: 'center',
   },
   timeChipActive: {
     backgroundColor: 'rgba(37,99,235,0.22)',
     borderColor: 'rgba(37,99,235,0.55)',
   },
-  timeLabel: {
-    fontFamily: Fonts.bodyMedium,
-    fontSize: FontSize.sm,
-    color: 'rgba(255,255,255,0.55)',
-  },
-  timeLabelActive: {
-    color: '#ffffff',
-  },
+  timeLabel: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.sm, color: 'rgba(255,255,255,0.55)' },
+  timeLabelActive: { color: '#ffffff' },
 
-  // Visibility toggle card
-  visibilityCard: {
+  // ── MEET AS segmented control ──
+  segmentRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 10,
+  },
+  segmentBtn: {
+    flex: 1,
     alignItems: 'center',
-    marginTop: 20,
-    padding: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    borderRadius: 18,
     backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.10)',
+    borderColor: 'rgba(255,255,255,0.12)',
+    gap: 4,
   },
-  visibilityText: { flex: 1, marginRight: 16 },
-  visTitle: {
-    fontFamily: Fonts.bodyMedium,
-    fontSize: FontSize.base,
-    color: '#ffffff',
-  },
-  visSub: {
-    fontFamily: Fonts.body,
-    fontSize: FontSize.sm,
-    color: 'rgba(255,255,255,0.45)',
-    marginTop: 2,
-  },
-
-  // Add button
-  addButton: {
-    marginTop: 28,
-    paddingVertical: 16,
-    borderRadius: 9999,
+  segmentBtnActive: {
     backgroundColor: '#2563EB',
-    alignItems: 'center',
+    borderColor: '#2563EB',
     shadowColor: '#2563EB',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.55,
-    shadowRadius: 20,
+    shadowOpacity: 0.45,
+    shadowRadius: 14,
+    elevation: 8,
+  },
+  segmentEmoji: { fontSize: 20 },
+  segmentBtnLabel: {
+    fontFamily: Fonts.bodyMedium,
+    fontSize: FontSize.base,
+    color: 'rgba(255,255,255,0.65)',
+  },
+  segmentBtnLabelActive: { color: '#ffffff' },
+  segmentDesc: {
+    fontFamily: Fonts.body,
+    fontSize: FontSize.xs,
+    color: 'rgba(255,255,255,0.35)',
+    textAlign: 'center',
+  },
+  segmentDescActive: { color: 'rgba(255,255,255,0.75)' },
+
+  // Max group size
+  sizeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  sizeChip: {
+    paddingVertical: 9,
+    paddingHorizontal: 16,
+    borderRadius: 9999,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
+    minWidth: 44,
+    alignItems: 'center',
+  },
+  sizeChipActive: {
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
+  },
+  sizeLabel: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.sm, color: 'rgba(255,255,255,0.6)' },
+  sizeLabelActive: { color: '#ffffff' },
+
+  // Visibility
+  visibilityCard: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    marginTop: 20, padding: 16,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+  },
+  visibilityText: { flex: 1, marginRight: 16 },
+  visTitle: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.base, color: '#ffffff' },
+  visSub: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: 'rgba(255,255,255,0.45)', marginTop: 2 },
+
+  // Submit button
+  addButton: {
+    marginTop: 28, paddingVertical: 16, borderRadius: 9999,
+    backgroundColor: '#2563EB', alignItems: 'center',
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.55, shadowRadius: 20,
     elevation: 10,
   },
   addButtonText: {
-    fontFamily: Fonts.bodyMedium,
-    fontSize: FontSize.base,
-    color: '#ffffff',
-    fontWeight: '600',
-    letterSpacing: 0.2,
+    fontFamily: Fonts.bodyMedium, fontSize: FontSize.base,
+    color: '#ffffff', fontWeight: '600', letterSpacing: 0.2,
   },
 });

@@ -65,6 +65,8 @@ export async function createActivity(activity: {
   title: string;
   timeframe: string;
   is_public: boolean;
+  meeting_type?: 'solo' | 'group';
+  max_group_size?: number | null;
   city?: string;
   district?: string;
 }) {
