@@ -49,6 +49,7 @@ const styles = StyleSheet.create({
   blur: {
     borderRadius: 24,
     overflow: 'hidden',
+    alignSelf: 'stretch',
   },
   inner: {
     borderWidth: 1,
