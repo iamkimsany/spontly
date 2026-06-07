@@ -53,7 +53,7 @@ function StarButton({
 }
 
 export default function RatingScreen() {
-  const { activeMatch, profile } = useAppStore();
+  const { activeMatch, profile, removeActiveMatch } = useAppStore();
 
   React.useEffect(() => {
     if (!activeMatch) {
@@ -96,6 +96,7 @@ export default function RatingScreen() {
   const handleSubmit = async () => {
     if (ratings.length === 0) {
       if (activeMatch?.activityId) markActivityCompleted(activeMatch.activityId);
+      if (activeMatch?.id) removeActiveMatch(activeMatch.id);
       useAppStore.setState({ activeMatch: null });
       router.replace('/(tabs)');
       return;
@@ -135,6 +136,7 @@ export default function RatingScreen() {
         await new Promise((res) => setTimeout(res, 2600));
       }
 
+      if (activeMatch?.id) removeActiveMatch(activeMatch.id);
       useAppStore.setState({ activeMatch: null });
       router.replace('/(tabs)');
     } finally {

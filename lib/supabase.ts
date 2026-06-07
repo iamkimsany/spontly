@@ -219,6 +219,43 @@ export async function loadActiveMatchForUser(userId: string): Promise<Match | nu
   };
 }
 
+function rawToMatch(raw: any): Match {
+  return {
+    id: raw.id,
+    activityId: (raw.activities as any)?.id ?? '',
+    activityTitle: (raw.activities as any)?.title ?? 'Activity',
+    activityCategory: (raw.activities as any)?.category ?? '',
+    format: raw.format as Match['format'],
+    status: raw.status as Match['status'],
+    location: raw.location ?? '',
+    meetupTime: raw.meetup_time ?? new Date().toISOString(),
+    participants: ((raw.match_participants as any[]) ?? []).map((p: any) => ({
+      userId: p.user_id,
+      name: p.users?.name ?? 'User',
+      photoUrl: p.users?.photo_url ?? null,
+      confirmed: p.confirmed,
+      gpsActive: p.gps_active,
+    })),
+    createdAt: raw.created_at,
+  };
+}
+
+export async function loadAllActiveMatchesForUser(userId: string): Promise<Match[]> {
+  const rows = await getUserMatches(userId);
+  const activeRows = (rows as any[]).filter((r) => {
+    const m = r.matches;
+    return m && (m.status === 'pending' || m.status === 'confirmed');
+  });
+  if (activeRows.length === 0) return [];
+  const results = await Promise.all(
+    activeRows.map((r) => getMatchWithParticipants(r.match_id))
+  );
+  return results
+    .filter(Boolean)
+    .map(rawToMatch)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
 // ---- Ratings ----
 
 export async function submitRating(rating: {

@@ -12,7 +12,7 @@ import { AddActivitySheet } from '@/components/AddActivitySheet';
 import { CATEGORIES } from '@/constants/categories';
 
 export default function ListScreen() {
-  const { activities, removeActivity, activeMatch, completedActivityIds } = useAppStore();
+  const { activities, removeActivity, activeMatches, completedActivityIds } = useAppStore();
   const [showAdd, setShowAdd] = useState(false);
 
   const grouped = {
@@ -45,9 +45,10 @@ export default function ListScreen() {
                 </View>
                 <View style={styles.itemRight}>
                   {a.isPublic && (() => {
-                    const isMatched = activeMatch?.activityId === a.id;
-                    const isCompleted = completedActivityIds.includes(a.id) || (isMatched && activeMatch?.status === 'completed');
-                    const isActive = isMatched && (activeMatch?.status === 'pending' || activeMatch?.status === 'confirmed');
+                    const matchedMatch = activeMatches.find((m) => m.activityId === a.id);
+                    const isMatched = !!matchedMatch;
+                    const isCompleted = completedActivityIds.includes(a.id) || (isMatched && matchedMatch?.status === 'completed');
+                    const isActive = isMatched && (matchedMatch?.status === 'pending' || matchedMatch?.status === 'confirmed');
                     if (isCompleted) return (
                       <View style={[styles.publicPill, styles.completedPill]}>
                         <Check size={12} color="#2563EB" strokeWidth={2.5} />

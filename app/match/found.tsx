@@ -28,7 +28,7 @@ export default function MatchFoundScreen() {
   const slideAnim = useRef(new Animated.Value(80)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const glowAnim = useRef(new Animated.Value(0)).current;
-  const { setActiveMatch } = useAppStore();
+  const { setActiveMatch, addOrUpdateActiveMatch } = useAppStore();
 
   useEffect(() => {
     Animated.parallel([
@@ -47,6 +47,7 @@ export default function MatchFoundScreen() {
 
   const handleAccept = () => {
     setActiveMatch(DEMO_MATCH);
+    addOrUpdateActiveMatch(DEMO_MATCH);
     router.push('/match/confirm');
   };
 

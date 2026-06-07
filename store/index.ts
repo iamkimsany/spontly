@@ -60,7 +60,10 @@ interface AppState {
   activities: Activity[];
 
   // Matches
+  /** Currently-viewed match — used by active/confirm/rating screens */
   activeMatch: Match | null;
+  /** All active (pending/confirmed) matches — drives the home screen stack */
+  activeMatches: Match[];
   pendingMatches: Match[];
   completedActivityIds: string[];
 
@@ -79,6 +82,9 @@ interface AppState {
   addActivity: (activity: Activity) => void;
   removeActivity: (id: string) => void;
   setActiveMatch: (match: Match | null) => void;
+  setActiveMatches: (matches: Match[]) => void;
+  addOrUpdateActiveMatch: (match: Match) => void;
+  removeActiveMatch: (matchId: string) => void;
   setPendingMatches: (matches: Match[]) => void;
   markActivityCompleted: (activityId: string) => void;
   setGpsActive: (v: boolean) => void;
@@ -94,6 +100,7 @@ export const useAppStore = create<AppState>((set) => ({
   profile: null,
   activities: [],
   activeMatch: null,
+  activeMatches: [],
   pendingMatches: [],
   completedActivityIds: [],
   gpsActive: false,
@@ -109,12 +116,24 @@ export const useAppStore = create<AppState>((set) => ({
   addActivity: (activity) => set((s) => ({ activities: [...s.activities, activity] })),
   removeActivity: (id) => set((s) => ({ activities: s.activities.filter((a) => a.id !== id) })),
   setActiveMatch: (match) => set({ activeMatch: match }),
+  setActiveMatches: (matches) => set({ activeMatches: matches }),
+  addOrUpdateActiveMatch: (match) =>
+    set((s) => {
+      const exists = s.activeMatches.some((m) => m.id === match.id);
+      const updated = exists
+        ? s.activeMatches.map((m) => (m.id === match.id ? match : m))
+        : [match, ...s.activeMatches]; // newest first
+      return { activeMatches: updated };
+    }),
+  removeActiveMatch: (matchId) =>
+    set((s) => ({ activeMatches: s.activeMatches.filter((m) => m.id !== matchId) })),
   setPendingMatches: (matches) => set({ pendingMatches: matches }),
-  markActivityCompleted: (activityId) => set((s) => ({
-    completedActivityIds: s.completedActivityIds.includes(activityId)
-      ? s.completedActivityIds
-      : [...s.completedActivityIds, activityId],
-  })),
+  markActivityCompleted: (activityId) =>
+    set((s) => ({
+      completedActivityIds: s.completedActivityIds.includes(activityId)
+        ? s.completedActivityIds
+        : [...s.completedActivityIds, activityId],
+    })),
   setGpsActive: (v) => set({ gpsActive: v }),
   setSafetyZone: (zone) => set({ safetyZone: zone }),
   setCurrentLocation: (loc) => set({ currentLocation: loc }),

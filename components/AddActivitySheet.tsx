@@ -35,7 +35,7 @@ export function AddActivitySheet({ visible, onClose }: Props) {
   const [maxGroupSize, setMaxGroupSize] = useState<GroupSize>(5);
   const [loading, setLoading] = useState(false);
   const slideAnim = useRef(new Animated.Value(700)).current;
-  const { addActivity, profile, setActiveMatch } = useAppStore();
+  const { addActivity, profile, setActiveMatch, addOrUpdateActiveMatch } = useAppStore();
 
   useEffect(() => {
     if (visible) {
@@ -146,6 +146,7 @@ export function AddActivitySheet({ visible, onClose }: Props) {
                   createdAt: raw.created_at,
                 };
                 setActiveMatch(storeMatch);
+                addOrUpdateActiveMatch(storeMatch);
               }
             } catch (fetchErr: any) {
               console.warn('[AddActivity] Could not load match details:', fetchErr?.message);

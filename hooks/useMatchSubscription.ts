@@ -4,13 +4,12 @@ import { useAppStore } from '@/store';
 import { scheduleLocalNotification } from '@/lib/notifications';
 
 export function useMatchSubscription() {
-  const { profile, setActiveMatch } = useAppStore();
+  const { profile, addOrUpdateActiveMatch } = useAppStore();
   const prevMatchId = useRef<string | null>(null);
 
   useEffect(() => {
     if (!profile?.id) return;
     const userId = profile.id;
-    // Unique name prevents StrictMode double-mount from reusing a subscribed channel
     const channelName = `match-notify-${userId}-${Date.now()}`;
 
     const notify = async () => {
@@ -19,7 +18,7 @@ export function useMatchSubscription() {
         if (match && match.id !== prevMatchId.current) {
           const isNew = prevMatchId.current !== null;
           prevMatchId.current = match.id;
-          setActiveMatch(match);
+          addOrUpdateActiveMatch(match);
           if (isNew) {
             scheduleLocalNotification(
               '🔥 Match found!',

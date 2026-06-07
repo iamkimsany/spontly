@@ -1,15 +1,13 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated,
 } from 'react-native';
 import { Settings } from 'lucide-react-native';
-import { useFocusEffect } from 'expo-router';
-import { router } from 'expo-router';
+import { useFocusEffect, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { GradientBackground } from '@/components/ui/GradientBackground';
 import { GlassCard } from '@/components/ui/GlassCard';
-import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { GPSIndicator, GPSStatus } from '@/components/ui/GPSIndicator';
 import { Colors } from '@/constants/colors';
 import { Fonts, FontSize } from '@/constants/typography';
@@ -17,7 +15,7 @@ import { useAppStore, Match } from '@/store';
 import { AddActivitySheet } from '@/components/AddActivitySheet';
 import { MatchFoundPopup } from '@/components/MatchFoundPopup';
 import { CATEGORIES } from '@/constants/categories';
-import { getMatchWithParticipants, getUserMatches } from '@/lib/supabase';
+import { loadAllActiveMatchesForUser } from '@/lib/supabase';
 import { useMatchSubscription } from '@/hooks/useMatchSubscription';
 
 const NEARBY_DEMO = [
@@ -26,97 +24,201 @@ const NEARBY_DEMO = [
   { id: '3', name: 'Mia', activity: 'Salsa dance class', category: '🎵', time: 'This week' },
 ];
 
-async function loadActiveMatch(
-  userId: string,
-  setActiveMatch: (m: Match | null) => void
-) {
-  try {
-    const rows = await getUserMatches(userId);
-    const pending = rows.find((r: any) => {
-      const m = r.matches;
-      return m && (m.status === 'pending' || m.status === 'confirmed');
-    });
-    if (!pending) return;
-    const raw = await getMatchWithParticipants(pending.match_id);
-    if (!raw) return;
-    setActiveMatch({
-      id: raw.id,
-      activityId: (raw.activities as any)?.id ?? '',
-      activityTitle: (raw.activities as any)?.title ?? 'Activity',
-      activityCategory: (raw.activities as any)?.category ?? '',
-      format: raw.format as Match['format'],
-      status: raw.status as Match['status'],
-      location: raw.location ?? '',
-      meetupTime: raw.meetup_time ?? new Date().toISOString(),
-      participants: ((raw.match_participants as any[]) ?? []).map((p: any) => ({
-        userId: p.user_id,
-        name: p.users?.name ?? 'User',
-        photoUrl: p.users?.photo_url ?? null,
-        confirmed: p.confirmed,
-        gpsActive: p.gps_active,
-      })),
-      createdAt: raw.created_at,
-    });
-  } catch (e: any) {
-    console.warn('[Home] Could not load active match:', e?.message);
-  }
-}
-
 async function checkGPSStatus(setGpsActive: (v: boolean) => void): Promise<GPSStatus> {
   try {
     const { status } = await Location.getForegroundPermissionsAsync();
     if (status === 'granted') {
-      // Confirm GPS is actually working (low-accuracy, fast)
       const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Lowest });
-      if (loc) {
-        setGpsActive(true);
-        return 'ready';
-      }
+      if (loc) { setGpsActive(true); return 'ready'; }
     }
-  } catch {
-    // permission denied or hardware unavailable
-  }
+  } catch { /* permission denied or hardware unavailable */ }
   setGpsActive(false);
   return 'off';
 }
 
+// ─── Match stack component ────────────────────────────────────────────────────
+
+function formatMatchTime(createdAt: string): string {
+  const diff = Date.now() - new Date(createdAt).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 2) return 'NOW';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
+}
+
+function formatBadge(match: Match): string {
+  if (match.format === 'solo') return '1:1';
+  const count = match.participants.length;
+  return `Group · ${count}`;
+}
+
+interface MatchCardProps {
+  match: Match;
+  index: number;
+  expanded: boolean;
+  onView: () => void;
+}
+
+function MatchCard({ match, index, expanded, onView }: MatchCardProps) {
+  const isNow = formatMatchTime(match.createdAt) === 'NOW';
+  const others = match.participants.slice(0, 3);
+  const extra = match.participants.length - 3;
+
+  // Stacked visual for non-first cards when collapsed
+  const stackOpacity = expanded ? 1 : index === 0 ? 1 : index === 1 ? 0.85 : 0.7;
+  const stackScale = expanded ? 1 : index === 0 ? 1 : index === 1 ? 0.97 : 0.94;
+  const stackMarginTop = (!expanded && index > 0) ? -14 : 0;
+
+  return (
+    <View
+      style={[
+        stackStyles.wrapper,
+        { marginTop: stackMarginTop, opacity: stackOpacity, transform: [{ scale: stackScale }] },
+      ]}
+    >
+      <GlassCard variant="active" padding={18} style={stackStyles.card}>
+        {/* Top row */}
+        <View style={stackStyles.topRow}>
+          <Text style={stackStyles.label}>🔥 Active Match</Text>
+          <View style={[stackStyles.timeBadge, isNow && stackStyles.timeBadgeNow]}>
+            <Text style={[stackStyles.timeText, isNow && stackStyles.timeTextNow]}>
+              {formatMatchTime(match.createdAt)}
+            </Text>
+          </View>
+        </View>
+
+        {/* Title */}
+        <Text style={stackStyles.title} numberOfLines={1}>{match.activityTitle}</Text>
+
+        {/* Bottom row */}
+        <View style={stackStyles.bottomRow}>
+          <View style={stackStyles.avatarRow}>
+            {others.map((p, i) => (
+              <View key={i} style={[stackStyles.avatar, i > 0 && { marginLeft: -8 }]}>
+                <Text style={stackStyles.avatarText}>{p.name[0]}</Text>
+              </View>
+            ))}
+            {extra > 0 && (
+              <Text style={stackStyles.extra}>+{extra}</Text>
+            )}
+          </View>
+          <View style={stackStyles.rightRow}>
+            <View style={stackStyles.formatBadge}>
+              <Text style={stackStyles.formatText}>{formatBadge(match)}</Text>
+            </View>
+            <TouchableOpacity style={stackStyles.viewBtn} onPress={onView} activeOpacity={0.8}>
+              <Text style={stackStyles.viewBtnText}>View →</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </GlassCard>
+    </View>
+  );
+}
+
+interface MatchStackProps {
+  matches: Match[];
+  onView: (match: Match) => void;
+}
+
+function MatchStack({ matches, onView }: MatchStackProps) {
+  const [expanded, setExpanded] = useState(false);
+  const visible = expanded ? matches : matches.slice(0, 3);
+
+  if (matches.length === 0) {
+    return (
+      <GlassCard variant="subtle" padding={20} style={{ width: '100%' }}>
+        <Text style={stackStyles.noMatchTitle}>No active match</Text>
+        <Text style={stackStyles.noMatchSub}>Add an activity to get matched with someone nearby.</Text>
+      </GlassCard>
+    );
+  }
+
+  return (
+    <View style={stackStyles.stackOuter}>
+      {/* Section title + counter */}
+      <TouchableOpacity
+        style={stackStyles.stackHeader}
+        onPress={() => matches.length > 1 && setExpanded((e) => !e)}
+        activeOpacity={matches.length > 1 ? 0.6 : 1}
+      >
+        <Text style={stackStyles.stackTitle}>
+          {matches.length === 1 ? 'Active Match' : `Active Matches`}
+        </Text>
+        {matches.length > 1 && (
+          <View style={stackStyles.countBadge}>
+            <Text style={stackStyles.countText}>{matches.length}</Text>
+          </View>
+        )}
+        {matches.length > 1 && (
+          <Text style={stackStyles.expandHint}>{expanded ? '↑ collapse' : '↓ expand'}</Text>
+        )}
+      </TouchableOpacity>
+
+      {/* Cards */}
+      <TouchableOpacity
+        activeOpacity={matches.length > 1 && !expanded ? 0.9 : 1}
+        onPress={() => matches.length > 1 && !expanded && setExpanded(true)}
+        style={stackStyles.stackCards}
+      >
+        {visible.map((m, i) => (
+          <MatchCard
+            key={m.id}
+            match={m}
+            index={i}
+            expanded={expanded}
+            onView={() => onView(m)}
+          />
+        ))}
+        {!expanded && matches.length > 3 && (
+          <Text style={stackStyles.moreHint}>+{matches.length - 3} more · tap to expand</Text>
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+// ─── Home screen ─────────────────────────────────────────────────────────────
+
 export default function HomeScreen() {
-  const { profile, activities, activeMatch, gpsActive, setActiveMatch, setGpsActive } = useAppStore();
+  const {
+    profile, activities, activeMatches, gpsActive,
+    setActiveMatch, setActiveMatches, setGpsActive,
+  } = useAppStore();
   useMatchSubscription();
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [gpsStatus, setGpsStatus] = useState<GPSStatus>('off');
   const [matchPopup, setMatchPopup] = useState<{ title: string; participants: Match['participants'] } | null>(null);
-  const seenMatchId = useRef<string | null>(null);
+  const seenMatchIds = useRef<Set<string>>(new Set());
 
-  // Check real GPS status on mount
+  useEffect(() => { checkGPSStatus(setGpsActive).then(setGpsStatus); }, []);
+  useFocusEffect(useCallback(() => { checkGPSStatus(setGpsActive).then(setGpsStatus); }, []));
+
+  // Load all active matches on mount
   useEffect(() => {
-    checkGPSStatus(setGpsActive).then(setGpsStatus);
-  }, []);
-
-  // Re-check GPS status every time the tab comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      checkGPSStatus(setGpsActive).then(setGpsStatus);
-    }, [])
-  );
-
-  // Load active match on mount and on manual refresh
-  useEffect(() => {
-    if (profile?.id) loadActiveMatch(profile.id, setActiveMatch);
+    if (profile?.id) {
+      loadAllActiveMatchesForUser(profile.id)
+        .then(setActiveMatches)
+        .catch((e: any) => console.warn('[Home] Could not load matches:', e?.message));
+    }
   }, [profile?.id]);
 
-  // Show match popup when a new match arrives
+  // Show popup for any new match
   useEffect(() => {
-    if (activeMatch && activeMatch.id !== seenMatchId.current) {
-      seenMatchId.current = activeMatch.id;
-      setMatchPopup({
-        title: activeMatch.activityTitle,
-        participants: activeMatch.participants.filter((p) => p.userId !== profile?.id),
-      });
+    for (const m of activeMatches) {
+      if (!seenMatchIds.current.has(m.id)) {
+        seenMatchIds.current.add(m.id);
+        setMatchPopup({
+          title: m.activityTitle,
+          participants: m.participants.filter((p) => p.userId !== profile?.id),
+        });
+        break; // show one popup at a time
+      }
     }
-    if (!activeMatch) seenMatchId.current = null;
-  }, [activeMatch?.id]);
+  }, [activeMatches.map((m) => m.id).join(',')]);
 
   const greeting = () => {
     const h = new Date().getHours();
@@ -131,8 +233,16 @@ export default function HomeScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    if (profile?.id) await loadActiveMatch(profile.id, setActiveMatch);
+    if (profile?.id) {
+      const matches = await loadAllActiveMatchesForUser(profile.id).catch(() => []);
+      setActiveMatches(matches);
+    }
     setRefreshing(false);
+  };
+
+  const handleViewMatch = (match: Match) => {
+    setActiveMatch(match);
+    router.push('/match/active');
   };
 
   return (
@@ -157,43 +267,8 @@ export default function HomeScreen() {
             <GPSIndicator status={gpsStatus} />
           </GlassCard>
 
-          {/* Active match banner */}
-          {activeMatch ? (
-            <GlassCard variant="active" padding={20} style={styles.matchBanner}>
-              {/* Top row: label + NOW badge */}
-              <View style={styles.matchTopRow}>
-                <Text style={styles.matchLabel}>🔥 Active Match</Text>
-                <View style={styles.matchNow}>
-                  <Text style={styles.nowText}>NOW</Text>
-                </View>
-              </View>
-              <Text style={styles.matchTitle}>{activeMatch.activityTitle}</Text>
-              {/* Bottom row: avatars + View button */}
-              <View style={styles.matchBottomRow}>
-                <View style={styles.matchParticipants}>
-                  {activeMatch.participants.slice(0, 3).map((p, i) => (
-                    <View key={i} style={[styles.avatar, { marginLeft: i > 0 ? -8 : 0 }]}>
-                      <Text style={styles.avatarText}>{p.name[0]}</Text>
-                    </View>
-                  ))}
-                  {activeMatch.participants.length > 3 && (
-                    <Text style={styles.moreText}>+{activeMatch.participants.length - 3}</Text>
-                  )}
-                </View>
-                <TouchableOpacity
-                  style={styles.viewMatchBtn}
-                  onPress={() => router.push('/match/active')}
-                >
-                  <Text style={styles.viewMatchText}>View →</Text>
-                </TouchableOpacity>
-              </View>
-            </GlassCard>
-          ) : (
-            <GlassCard variant="subtle" padding={20} style={styles.noMatchBanner}>
-              <Text style={styles.noMatchTitle}>No active match</Text>
-              <Text style={styles.noMatchSub}>Add an activity to get matched with someone nearby.</Text>
-            </GlassCard>
-          )}
+          {/* Active matches stack */}
+          <MatchStack matches={activeMatches} onView={handleViewMatch} />
 
           {/* My activities */}
           <View style={styles.sectionHeader}>
@@ -262,19 +337,36 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  scroll: { paddingHorizontal: 20, paddingTop: 16, gap: 16, alignItems: 'stretch', width: '100%' },
-  header: { width: '100%' },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
-  greeting: { fontFamily: Fonts.display, fontSize: FontSize.md, color: Colors.text.primary },
-  date: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.secondary, marginTop: 2 },
-  settingsBtn: { padding: 8 },
-  matchBanner: { width: '100%' },
-  matchTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
-  matchBottomRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 14 },
-  matchLabel: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.sm, color: Colors.accent },
-  matchTitle: { fontFamily: Fonts.display, fontSize: FontSize.md, color: Colors.text.primary },
-  matchParticipants: { flexDirection: 'row' },
+// ─── Stack styles ─────────────────────────────────────────────────────────────
+
+const stackStyles = StyleSheet.create({
+  stackOuter: { width: '100%', gap: 0 },
+  stackHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
+  stackTitle: { fontFamily: Fonts.displayMedium, fontSize: FontSize.base, color: Colors.text.primary },
+  countBadge: {
+    backgroundColor: Colors.accent,
+    borderRadius: 9999,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  countText: { fontFamily: Fonts.bodySemiBold, fontSize: 11, color: '#ffffff' },
+  expandHint: { fontFamily: Fonts.body, fontSize: FontSize.xs, color: Colors.text.tertiary, marginLeft: 'auto' as any },
+  stackCards: { width: '100%' },
+  wrapper: { width: '100%' },
+  card: { width: '100%' },
+  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
+  label: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.sm, color: Colors.accent },
+  timeBadge: {
+    backgroundColor: Colors.accentSoft,
+    paddingHorizontal: 10, paddingVertical: 3,
+    borderRadius: 9999, borderWidth: 1, borderColor: Colors.border.accent,
+  },
+  timeBadgeNow: { backgroundColor: Colors.accent },
+  timeText: { fontFamily: Fonts.bodySemiBold, fontSize: 10, color: Colors.accent, letterSpacing: 0.8 },
+  timeTextNow: { color: '#ffffff' },
+  title: { fontFamily: Fonts.display, fontSize: FontSize.md, color: Colors.text.primary, marginBottom: 14 },
+  bottomRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  avatarRow: { flexDirection: 'row', alignItems: 'center' },
   avatar: {
     width: 28, height: 28, borderRadius: 14,
     backgroundColor: Colors.glass.strong,
@@ -282,35 +374,44 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   avatarText: { fontFamily: Fonts.bodyMedium, fontSize: 11, color: Colors.text.primary },
-  moreText: { fontFamily: Fonts.body, fontSize: FontSize.xs, color: Colors.text.secondary, marginLeft: 8, alignSelf: 'center' },
-  viewMatchBtn: {
+  extra: { fontFamily: Fonts.body, fontSize: FontSize.xs, color: Colors.text.secondary, marginLeft: 8 },
+  rightRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  formatBadge: {
+    backgroundColor: Colors.glass.subtle,
+    borderRadius: 9999, paddingHorizontal: 8, paddingVertical: 4,
+    borderWidth: 1, borderColor: Colors.border.subtle,
+  },
+  formatText: { fontFamily: Fonts.body, fontSize: 11, color: Colors.text.secondary },
+  viewBtn: {
     backgroundColor: Colors.accent,
-    paddingVertical: 10,
-    paddingHorizontal: 18,
+    paddingVertical: 8, paddingHorizontal: 16,
     borderRadius: 9999,
   },
-  viewMatchText: { fontFamily: Fonts.bodySemiBold, fontSize: FontSize.sm, color: Colors.text.dark },
-  matchNow: {
-    backgroundColor: Colors.accentSoft,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 9999,
-    borderWidth: 1,
-    borderColor: Colors.border.accent,
+  viewBtnText: { fontFamily: Fonts.bodySemiBold, fontSize: FontSize.sm, color: Colors.text.dark },
+  moreHint: {
+    fontFamily: Fonts.body, fontSize: FontSize.xs,
+    color: Colors.text.tertiary, textAlign: 'center',
+    paddingTop: 6,
   },
-  nowText: { fontFamily: Fonts.bodySemiBold, fontSize: 10, color: Colors.accent, letterSpacing: 1 },
-  noMatchBanner: { width: '100%' },
   noMatchTitle: { fontFamily: Fonts.displayMedium, fontSize: FontSize.base, color: Colors.text.primary, marginBottom: 4 },
   noMatchSub: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.secondary },
+});
+
+// ─── Screen styles ────────────────────────────────────────────────────────────
+
+const styles = StyleSheet.create({
+  scroll: { paddingHorizontal: 20, paddingTop: 16, gap: 16, alignItems: 'stretch', width: '100%' },
+  header: { width: '100%' },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
+  greeting: { fontFamily: Fonts.display, fontSize: FontSize.md, color: Colors.text.primary },
+  date: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.secondary, marginTop: 2 },
+  settingsBtn: { padding: 8 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sectionTitle: { fontFamily: Fonts.displayMedium, fontSize: FontSize.base, color: Colors.text.primary },
   addBtn: {
     backgroundColor: Colors.accentSoft,
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 9999,
-    borderWidth: 1,
-    borderColor: Colors.border.accent,
+    paddingVertical: 6, paddingHorizontal: 14,
+    borderRadius: 9999, borderWidth: 1, borderColor: Colors.border.accent,
   },
   addBtnText: { fontFamily: Fonts.bodySemiBold, fontSize: FontSize.sm, color: Colors.accent },
   activityRow: { flexDirection: 'row' },
@@ -323,17 +424,8 @@ const styles = StyleSheet.create({
   publicDot: { fontSize: 8, color: Colors.accent, marginTop: 6 },
   nearbyList: { gap: 10, width: '100%', alignSelf: 'stretch' },
   nearbyTouchable: { width: '100%', alignSelf: 'stretch' },
-  // GlassCard wrapper — full width, fixed height so all cards are identical
   nearbyCard: { width: '100%', height: 76 },
-  // Inner row fills the fixed-height card
-  nearbyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    width: '100%',
-    height: 76,
-    overflow: 'hidden',
-  },
+  nearbyRow: { flexDirection: 'row', alignItems: 'center', gap: 12, width: '100%', height: 76, overflow: 'hidden' },
   nearbyEmoji: { fontSize: 22, width: 34, textAlign: 'center', flexShrink: 0 },
   nearbyMiddle: { flex: 1, overflow: 'hidden' },
   nearbyName: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.base, color: Colors.text.primary },
