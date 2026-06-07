@@ -1,14 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl,
 } from 'react-native';
 import { Settings } from 'lucide-react-native';
+import { useFocusEffect } from 'expo-router';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Location from 'expo-location';
 import { GradientBackground } from '@/components/ui/GradientBackground';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
-import { GPSIndicator } from '@/components/ui/GPSIndicator';
+import { GPSIndicator, GPSStatus } from '@/components/ui/GPSIndicator';
 import { Colors } from '@/constants/colors';
 import { Fonts, FontSize } from '@/constants/typography';
 import { useAppStore, Match } from '@/store';
@@ -59,11 +61,42 @@ async function loadActiveMatch(
   }
 }
 
+async function checkGPSStatus(setGpsActive: (v: boolean) => void): Promise<GPSStatus> {
+  try {
+    const { status } = await Location.getForegroundPermissionsAsync();
+    if (status === 'granted') {
+      // Confirm GPS is actually working (low-accuracy, fast)
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Lowest });
+      if (loc) {
+        setGpsActive(true);
+        return 'ready';
+      }
+    }
+  } catch {
+    // permission denied or hardware unavailable
+  }
+  setGpsActive(false);
+  return 'off';
+}
+
 export default function HomeScreen() {
-  const { profile, activities, activeMatch, gpsActive, setActiveMatch } = useAppStore();
+  const { profile, activities, activeMatch, gpsActive, setActiveMatch, setGpsActive } = useAppStore();
   useMatchSubscription();
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [gpsStatus, setGpsStatus] = useState<GPSStatus>('off');
+
+  // Check real GPS status on mount
+  useEffect(() => {
+    checkGPSStatus(setGpsActive).then(setGpsStatus);
+  }, []);
+
+  // Re-check GPS status every time the tab comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      checkGPSStatus(setGpsActive).then(setGpsStatus);
+    }, [])
+  );
 
   // Load active match on mount and on manual refresh
   useEffect(() => {
@@ -106,7 +139,7 @@ export default function HomeScreen() {
                 <Settings size={22} color="rgba(0,0,0,0.4)" />
               </TouchableOpacity>
             </View>
-            <GPSIndicator active={gpsActive} />
+            <GPSIndicator status={gpsStatus} />
           </GlassCard>
 
           {/* Active match banner */}

@@ -3,33 +3,56 @@ import { View, Text, StyleSheet, Animated } from 'react-native';
 import { Colors } from '@/constants/colors';
 import { Fonts, FontSize } from '@/constants/typography';
 
+// 'ready'  — permission granted, not in an active meetup (green, no pulse)
+// 'active' — in an active meetup, live tracking (green, pulsing)
+// 'off'    — permission denied or unavailable (grey)
+export type GPSStatus = 'ready' | 'active' | 'off';
+
 interface Props {
-  active: boolean;
+  /** Legacy boolean (converted internally) OR explicit GPSStatus */
+  active?: boolean;
+  status?: GPSStatus;
 }
 
-export function GPSIndicator({ active }: Props) {
+function resolveStatus(active?: boolean, status?: GPSStatus): GPSStatus {
+  if (status !== undefined) return status;
+  return active ? 'active' : 'off';
+}
+
+export function GPSIndicator({ active, status }: Props) {
+  const resolved = resolveStatus(active, status);
   const pulse = useRef(new Animated.Value(1)).current;
+  const loopRef = useRef<Animated.CompositeAnimation | null>(null);
 
   useEffect(() => {
-    if (active) {
-      Animated.loop(
+    if (resolved === 'active') {
+      loopRef.current = Animated.loop(
         Animated.sequence([
           Animated.timing(pulse, { toValue: 1.4, duration: 750, useNativeDriver: true }),
           Animated.timing(pulse, { toValue: 1, duration: 750, useNativeDriver: true }),
         ])
-      ).start();
+      );
+      loopRef.current.start();
     } else {
+      loopRef.current?.stop();
       pulse.setValue(1);
     }
-  }, [active]);
+  }, [resolved]);
+
+  const isGreen = resolved === 'ready' || resolved === 'active';
+  const label = resolved === 'active' ? 'GPS Active' : resolved === 'ready' ? 'GPS Ready' : 'GPS Off';
 
   return (
-    <View style={[styles.pill, active ? styles.active : styles.off]}>
+    <View style={[styles.pill, isGreen ? styles.pillGreen : styles.pillOff]}>
       <Animated.View
-        style={[styles.dot, active ? styles.dotActive : styles.dotOff, { transform: [{ scale: pulse }] }]}
+        style={[
+          styles.dot,
+          isGreen ? styles.dotGreen : styles.dotOff,
+          { transform: [{ scale: pulse }] },
+        ]}
       />
-      <Text style={[styles.label, active ? styles.labelActive : styles.labelOff]}>
-        {active ? 'GPS Active' : 'GPS Off'}
+      <Text style={[styles.label, isGreen ? styles.labelGreen : styles.labelOff]}>
+        {label}
       </Text>
     </View>
   );
@@ -46,11 +69,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignSelf: 'flex-start',
   },
-  active: {
-    backgroundColor: Colors.accentSoft,
-    borderColor: 'rgba(200,241,53,0.3)',
+  pillGreen: {
+    backgroundColor: 'rgba(34,197,94,0.08)',
+    borderColor: 'rgba(34,197,94,0.25)',
   },
-  off: {
+  pillOff: {
     backgroundColor: Colors.glass.subtle,
     borderColor: Colors.border.subtle,
   },
@@ -59,8 +82,8 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
   },
-  dotActive: {
-    backgroundColor: Colors.accent,
+  dotGreen: {
+    backgroundColor: '#16a34a',
   },
   dotOff: {
     backgroundColor: Colors.text.tertiary,
@@ -69,8 +92,8 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bodyMedium,
     fontSize: FontSize.sm,
   },
-  labelActive: {
-    color: Colors.accent,
+  labelGreen: {
+    color: '#16a34a',
   },
   labelOff: {
     color: Colors.text.tertiary,

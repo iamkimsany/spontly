@@ -288,7 +288,7 @@ export default function ActiveMeetupScreen() {
             </View>
             <View style={styles.headerRight}>
               <SafetyZoneBadge zone={safetyZone} />
-              <GPSIndicator active={gpsActive} />
+              <GPSIndicator status={gpsActive ? 'active' : 'off'} />
             </View>
           </View>
         </GlassCard>
@@ -347,7 +347,7 @@ export default function ActiveMeetupScreen() {
                       </View>
                       <Text style={styles.participantName}>{p.name}</Text>
                       <View style={styles.participantStatus}>
-                        <GPSIndicator active={p.gpsActive} />
+                        <GPSIndicator status={p.gpsActive ? 'active' : 'off'} />
                       </View>
                     </View>
                   ))}
