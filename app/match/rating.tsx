@@ -10,7 +10,8 @@ import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Colors } from '@/constants/colors';
 import { Fonts, FontSize } from '@/constants/typography';
 import { useAppStore } from '@/store';
-import { submitRating } from '@/lib/supabase';
+import { submitRating, incrementTrustScore } from '@/lib/supabase';
+import { POINTS_FOR_STARS } from '@/lib/trustLevel';
 
 interface ParticipantRating {
   userId: string;
@@ -66,6 +67,17 @@ export default function RatingScreen() {
 
   const [ratings, setRatings] = useState<ParticipantRating[]>(defaultRatings);
   const [submitting, setSubmitting] = useState(false);
+  const toastOpacity = useRef(new Animated.Value(0)).current;
+  const [toastText, setToastText] = useState('');
+
+  const showToast = (text: string) => {
+    setToastText(text);
+    Animated.sequence([
+      Animated.timing(toastOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+      Animated.delay(1800),
+      Animated.timing(toastOpacity, { toValue: 0, duration: 400, useNativeDriver: true }),
+    ]).start();
+  };
 
   const setScore = (userId: string, score: number) => {
     setRatings((prev) =>
@@ -95,6 +107,7 @@ export default function RatingScreen() {
     }
     setSubmitting(true);
     try {
+      let totalPointsGiven = 0;
       if (activeMatch?.id && profile?.id) {
         for (const r of ratings) {
           await submitRating({
@@ -104,9 +117,24 @@ export default function RatingScreen() {
             score: r.score,
             comment: r.comment || undefined,
           }).catch((e: any) => console.warn('[Rating] submitRating error:', e?.message));
+
+          const pts = POINTS_FOR_STARS[r.score] ?? 0;
+          if (pts > 0) {
+            totalPointsGiven += pts;
+            incrementTrustScore(r.userId, pts).catch((e: any) =>
+              console.warn('[Rating] incrementTrustScore error:', e?.message)
+            );
+          }
         }
       }
       if (activeMatch?.activityId) markActivityCompleted(activeMatch.activityId);
+
+      if (totalPointsGiven > 0) {
+        showToast(`⭐ +${totalPointsGiven} points added to their Trust Score`);
+        // Brief delay so user sees the toast before navigating
+        await new Promise((res) => setTimeout(res, 2600));
+      }
+
       useAppStore.setState({ activeMatch: null });
       router.replace('/(tabs)');
     } finally {
@@ -116,6 +144,11 @@ export default function RatingScreen() {
 
   return (
     <GradientBackground>
+      {/* Toast overlay */}
+      <Animated.View style={[styles.toast, { opacity: toastOpacity }]} pointerEvents="none">
+        <Text style={styles.toastText}>{toastText}</Text>
+      </Animated.View>
+
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* Header icon — large star */}
         <View style={styles.headerIcon}>
@@ -197,6 +230,26 @@ export default function RatingScreen() {
 }
 
 const styles = StyleSheet.create({
+  toast: {
+    position: 'absolute',
+    bottom: 48,
+    alignSelf: 'center',
+    backgroundColor: '#16a34a',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 9999,
+    zIndex: 100,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  toastText: {
+    fontFamily: Fonts.bodyMedium,
+    fontSize: FontSize.sm,
+    color: '#ffffff',
+  },
   scroll: { paddingHorizontal: 24, paddingTop: 64, gap: 16 },
   headerIcon: { alignItems: 'center', marginBottom: 4 },
   title: { fontFamily: Fonts.display, fontSize: FontSize.xl, color: Colors.text.primary, textAlign: 'center' },

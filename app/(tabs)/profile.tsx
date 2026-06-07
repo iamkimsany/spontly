@@ -10,6 +10,9 @@ import { GPSIndicator } from '@/components/ui/GPSIndicator';
 import { Colors } from '@/constants/colors';
 import { Fonts, FontSize } from '@/constants/typography';
 import { useAppStore } from '@/store';
+import { getTrustLevel, getLevelProgress, pointsToNext } from '@/lib/trustLevel';
+
+const TRUST_LEVELS_ORDERED = ['New', 'Member', 'Trusted', 'Verified', 'Elite'];
 
 const HISTORY_DEMO = [
   { id: '1', title: 'Bukhansan Hike', date: 'Jun 1, 2026', rating: 5, participants: 2 },
@@ -19,6 +22,10 @@ const HISTORY_DEMO = [
 
 export default function ProfileScreen() {
   const { profile, gpsActive, setAuthenticated, setOnboardingComplete } = useAppStore();
+  const score = profile?.trustScore ?? 0;
+  const level = getTrustLevel(score);
+  const progress = getLevelProgress(score);
+  const toNext = pointsToNext(score);
 
   const handleSignOut = () => {
     Alert.alert('Sign out?', '', [
@@ -70,7 +77,35 @@ export default function ProfileScreen() {
                 <Text style={styles.profileAge}>{profile?.age ? `Age ${profile.age}` : ''}</Text>
                 <GPSIndicator active={gpsActive} />
               </View>
-              <TrustScoreRing score={profile?.trustScore ?? 0} size={72} />
+              <View style={styles.trustRingWrap}>
+                <TrustScoreRing score={score} size={72} />
+                <View style={[styles.levelBadge, { backgroundColor: level.bg, borderColor: level.border }]}>
+                  <Text style={[styles.levelBadgeText, { color: level.color }]}>{level.name}</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            {/* Trust score progress */}
+            <View style={styles.progressSection}>
+              <View style={styles.progressHeader}>
+                <Text style={styles.progressLabel}>Trust Score</Text>
+                <Text style={[styles.progressScore, { color: level.color }]}>{score} / 100</Text>
+              </View>
+              <View style={styles.progressTrack}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    { width: `${Math.round(progress * 100)}%` as any, backgroundColor: level.color },
+                  ]}
+                />
+              </View>
+              <Text style={styles.progressHint}>
+                {toNext !== null
+                  ? `${toNext} points to ${TRUST_LEVELS_ORDERED[TRUST_LEVELS_ORDERED.indexOf(level.name) + 1]} level`
+                  : 'Max level reached — Elite ✦'}
+              </Text>
             </View>
 
             <View style={styles.divider} />
@@ -176,6 +211,36 @@ const styles = StyleSheet.create({
   profileName: { fontFamily: Fonts.display, fontSize: FontSize.md, color: Colors.text.primary },
   profileAge: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.secondary, marginTop: 2, marginBottom: 8 },
   divider: { height: 1, backgroundColor: Colors.border.subtle, marginVertical: 16 },
+  trustRingWrap: { alignItems: 'center', gap: 6 },
+  levelBadge: {
+    paddingVertical: 3,
+    paddingHorizontal: 10,
+    borderRadius: 9999,
+    borderWidth: 1,
+  },
+  levelBadgeText: {
+    fontFamily: Fonts.bodyMedium,
+    fontSize: 11,
+  },
+  progressSection: { gap: 8 },
+  progressHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  progressLabel: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.sm, color: Colors.text.secondary },
+  progressScore: { fontFamily: Fonts.display, fontSize: FontSize.sm },
+  progressTrack: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(0,0,0,0.07)',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  progressHint: {
+    fontFamily: Fonts.body,
+    fontSize: FontSize.xs,
+    color: Colors.text.tertiary,
+  },
   trustLabels: { gap: 8 },
   trustRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
   trustIcon: { width: 20, alignItems: 'center', justifyContent: 'center' },

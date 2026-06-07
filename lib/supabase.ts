@@ -233,6 +233,12 @@ export async function submitRating(rating: {
   return data;
 }
 
+export async function incrementTrustScore(userId: string, points: number): Promise<void> {
+  if (points <= 0) return;
+  const { error } = await supabase.rpc('increment_trust_score', { user_id: userId, points });
+  if (error) throw error;
+}
+
 // ---- Safety events ----
 
 export async function logSafetyEvent(event: {

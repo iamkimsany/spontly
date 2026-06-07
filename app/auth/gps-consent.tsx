@@ -10,6 +10,7 @@ import { Colors } from '@/constants/colors';
 import { Fonts, FontSize } from '@/constants/typography';
 import { useAppStore } from '@/store';
 import { supabase, upsertUser } from '@/lib/supabase';
+import { registrationBonus } from '@/lib/trustLevel';
 
 const POINTS = [
   { icon: '🔐', text: 'GPS only activates 10 min before a confirmed meetup' },
@@ -43,10 +44,17 @@ export default function GPSConsentScreen() {
       // Create a real Supabase auth session so auth.uid() is non-null for RLS
       const uid = await createSupabaseSession(profile?.phone ?? '');
 
+      const trustScore = registrationBonus({
+        hasPhoto: !!(profile?.photoUrl),
+        hasTrustedContact: !!(profile?.trustedContact),
+        gpsGranted,
+      });
+
       const updatedProfile = {
         ...profile!,
         id: uid,
         gpsConsent: gpsGranted,
+        trustScore,
       };
       setProfile(updatedProfile);
 
@@ -58,7 +66,7 @@ export default function GPSConsentScreen() {
         age: updatedProfile.age,
         trusted_contact: updatedProfile.trustedContact ?? undefined,
         selfie_verified: updatedProfile.selfieVerified,
-        trust_score: updatedProfile.trustScore,
+        trust_score: trustScore,
       });
       console.log('[Supabase] User row upserted, id:', uid);
 
