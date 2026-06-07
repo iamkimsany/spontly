@@ -118,7 +118,7 @@ export async function getMatchWithParticipants(matchId: string) {
       id, format, status, location, meetup_time, created_at,
       activities ( id, title, category ),
       match_participants ( user_id, confirmed, gps_active,
-        users ( id, name, photo_url, trust_score )
+        users ( id, name, photo_url )
       )
     `)
     .eq('id', matchId)
@@ -214,7 +214,6 @@ export async function loadActiveMatchForUser(userId: string): Promise<Match | nu
       photoUrl: p.users?.photo_url ?? null,
       confirmed: p.confirmed,
       gpsActive: p.gps_active,
-      trustScore: p.users?.trust_score ?? 40,
     })),
     createdAt: raw.created_at,
   };
@@ -236,7 +235,6 @@ function rawToMatch(raw: any): Match {
       photoUrl: p.users?.photo_url ?? null,
       confirmed: p.confirmed,
       gpsActive: p.gps_active,
-      trustScore: p.users?.trust_score ?? 40,
     })),
     createdAt: raw.created_at,
   };

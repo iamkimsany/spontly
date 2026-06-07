@@ -42,7 +42,6 @@ export interface MatchParticipant {
   photoUrl: string | null;
   confirmed: boolean;
   gpsActive: boolean;
-  trustScore: number;
 }
 
 export type SafetyZone = 'green' | 'yellow' | 'red' | 'black' | 'sos';
