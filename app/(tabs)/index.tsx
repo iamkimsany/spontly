@@ -181,15 +181,17 @@ export default function HomeScreen() {
           <View style={styles.nearbyList}>
             {NEARBY_DEMO.map((item) => (
               <TouchableOpacity key={item.id} style={styles.nearbyTouchable} onPress={() => router.push('/match/found')}>
-                <GlassCard variant="regular" padding={{ vertical: 14, horizontal: 18 }} style={styles.nearbyRow}>
-                  <Text style={styles.nearbyEmoji}>{item.category}</Text>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.nearbyName}>{item.name}</Text>
-                    <Text style={styles.nearbyActivity}>{item.activity}</Text>
-                  </View>
-                  <View style={styles.nearbyRight}>
-                    <Text style={styles.nearbyTime}>{item.time}</Text>
-                    <Text style={styles.nearbyArrow}>→</Text>
+                <GlassCard variant="regular" padding={{ vertical: 0, horizontal: 18 }} style={styles.nearbyCard}>
+                  <View style={styles.nearbyRow}>
+                    <Text style={styles.nearbyEmoji}>{item.category}</Text>
+                    <View style={styles.nearbyMiddle}>
+                      <Text style={styles.nearbyName} numberOfLines={1}>{item.name}</Text>
+                      <Text style={styles.nearbyActivity} numberOfLines={1}>{item.activity}</Text>
+                    </View>
+                    <View style={styles.nearbyRight}>
+                      <Text style={styles.nearbyTime}>{item.time}</Text>
+                      <Text style={styles.nearbyArrow}>→</Text>
+                    </View>
                   </View>
                 </GlassCard>
               </TouchableOpacity>
@@ -266,11 +268,22 @@ const styles = StyleSheet.create({
   publicDot: { fontSize: 8, color: Colors.accent, marginTop: 6 },
   nearbyList: { gap: 10, width: '100%', alignSelf: 'stretch' },
   nearbyTouchable: { width: '100%', alignSelf: 'stretch' },
-  nearbyRow: { flexDirection: 'row', alignItems: 'center', gap: 12, width: '100%' },
-  nearbyEmoji: { fontSize: 24, width: 36 },
+  // GlassCard wrapper — full width, fixed height so all cards are identical
+  nearbyCard: { width: '100%', height: 76 },
+  // Inner row fills the fixed-height card
+  nearbyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    width: '100%',
+    height: 76,
+    overflow: 'hidden',
+  },
+  nearbyEmoji: { fontSize: 22, width: 34, textAlign: 'center', flexShrink: 0 },
+  nearbyMiddle: { flex: 1, overflow: 'hidden' },
   nearbyName: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.base, color: Colors.text.primary },
   nearbyActivity: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.secondary, marginTop: 2 },
-  nearbyRight: { alignItems: 'flex-end' },
+  nearbyRight: { alignItems: 'flex-end', flexShrink: 0 },
   nearbyTime: { fontFamily: Fonts.body, fontSize: FontSize.xs, color: Colors.text.tertiary },
   nearbyArrow: { fontFamily: Fonts.body, fontSize: FontSize.base, color: Colors.accent, marginTop: 4 },
 });
