@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
+import { BubbleIcon } from '@/components/ui/BubbleIcon';
 import { router } from 'expo-router';
 import { GradientBackground } from '@/components/ui/GradientBackground';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -62,7 +63,10 @@ export default function MatchFoundScreen() {
         <Animated.View
           style={[styles.content, { transform: [{ translateY: slideAnim }], opacity: opacityAnim }]}
         >
-          <Text style={styles.matchBadge}>✨ Match Found</Text>
+          <View style={styles.matchBadgeRow}>
+            <BubbleIcon size={36} pulse />
+            <Text style={styles.matchBadge}>Match Found</Text>
+          </View>
 
           <GlassCard variant="active" padding={28} style={styles.card}>
             {/* Matched user */}
@@ -86,7 +90,7 @@ export default function MatchFoundScreen() {
             <View style={styles.infoGrid}>
               <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>Activity</Text>
-                <Text style={styles.infoValue}>🏃 {DEMO_MATCH.activityTitle}</Text>
+                <Text style={styles.infoValue}>{DEMO_MATCH.activityTitle}</Text>
               </View>
               <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>Format</Text>
@@ -143,11 +147,16 @@ const styles = StyleSheet.create({
     top: '25%',
   },
   content: { gap: 20 },
+  matchBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
   matchBadge: {
     fontFamily: Fonts.display,
     fontSize: FontSize.xxl,
     color: Colors.accent,
-    textAlign: 'center',
   },
   card: { width: '100%' },
   matchRow: { flexDirection: 'row', gap: 16, alignItems: 'center' },

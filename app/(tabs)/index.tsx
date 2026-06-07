@@ -9,6 +9,7 @@ import * as Location from 'expo-location';
 import { GradientBackground } from '@/components/ui/GradientBackground';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GPSIndicator, GPSStatus } from '@/components/ui/GPSIndicator';
+import { BubbleIcon } from '@/components/ui/BubbleIcon';
 import { Colors } from '@/constants/colors';
 import { Fonts, FontSize } from '@/constants/typography';
 import { useAppStore, Match } from '@/store';
@@ -81,7 +82,10 @@ function MatchCard({ match, index, expanded, onView }: MatchCardProps) {
       <GlassCard variant="active" padding={18} style={stackStyles.card}>
         {/* Top row */}
         <View style={stackStyles.topRow}>
-          <Text style={stackStyles.label}>🔥 Active Match</Text>
+          <View style={stackStyles.labelRow}>
+            <BubbleIcon size={20} pulse={isNow} />
+            <Text style={stackStyles.label}>Active Match</Text>
+          </View>
           <View style={[stackStyles.timeBadge, isNow && stackStyles.timeBadgeNow]}>
             <Text style={[stackStyles.timeText, isNow && stackStyles.timeTextNow]}>
               {formatMatchTime(match.createdAt)}
@@ -306,7 +310,9 @@ export default function HomeScreen() {
               <TouchableOpacity key={item.id} style={styles.nearbyTouchable} onPress={() => router.push('/match/found')}>
                 <GlassCard variant="regular" padding={{ vertical: 0, horizontal: 18 }} style={styles.nearbyCard}>
                   <View style={styles.nearbyRow}>
-                    <Text style={styles.nearbyEmoji}>{item.category}</Text>
+                    <View style={styles.nearbyBubbleWrap}>
+                      <BubbleIcon size={28} pulse={false} />
+                    </View>
                     <View style={styles.nearbyMiddle}>
                       <Text style={styles.nearbyName} numberOfLines={1}>{item.name}</Text>
                       <Text style={styles.nearbyActivity} numberOfLines={1}>{item.activity}</Text>
@@ -355,6 +361,7 @@ const stackStyles = StyleSheet.create({
   wrapper: { width: '100%' },
   card: { width: '100%' },
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
+  labelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   label: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.sm, color: Colors.accent },
   timeBadge: {
     backgroundColor: Colors.accentSoft,
@@ -426,7 +433,7 @@ const styles = StyleSheet.create({
   nearbyTouchable: { width: '100%', alignSelf: 'stretch' },
   nearbyCard: { width: '100%', height: 76 },
   nearbyRow: { flexDirection: 'row', alignItems: 'center', gap: 12, width: '100%', height: 76, overflow: 'hidden' },
-  nearbyEmoji: { fontSize: 22, width: 34, textAlign: 'center', flexShrink: 0 },
+  nearbyBubbleWrap: { width: 34, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   nearbyMiddle: { flex: 1, overflow: 'hidden' },
   nearbyName: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.base, color: Colors.text.primary },
   nearbyActivity: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.secondary, marginTop: 2 },
