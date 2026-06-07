@@ -58,27 +58,16 @@ function formatBadge(match: Match): string {
 interface MatchCardProps {
   match: Match;
   index: number;
-  expanded: boolean;
   onView: () => void;
 }
 
-function MatchCard({ match, index, expanded, onView }: MatchCardProps) {
+function MatchCard({ match, index, onView }: MatchCardProps) {
   const isNow = formatMatchTime(match.createdAt) === 'NOW';
   const others = match.participants.slice(0, 3);
   const extra = match.participants.length - 3;
 
-  // Stacked visual for non-first cards when collapsed
-  const stackOpacity = expanded ? 1 : index === 0 ? 1 : index === 1 ? 0.85 : 0.7;
-  const stackScale = expanded ? 1 : index === 0 ? 1 : index === 1 ? 0.97 : 0.94;
-  const stackMarginTop = (!expanded && index > 0) ? -14 : 0;
-
   return (
-    <View
-      style={[
-        stackStyles.wrapper,
-        { marginTop: stackMarginTop, opacity: stackOpacity, transform: [{ scale: stackScale }] },
-      ]}
-    >
+    <View style={[stackStyles.wrapper, index > 0 && stackStyles.wrapperGap]}>
       <GlassCard variant="active" padding={18} style={stackStyles.card}>
         {/* Top row */}
         <View style={stackStyles.topRow}>
@@ -128,8 +117,7 @@ interface MatchStackProps {
 }
 
 function MatchStack({ matches, onView }: MatchStackProps) {
-  const [expanded, setExpanded] = useState(false);
-  const visible = expanded ? matches : matches.slice(0, 3);
+  const visible = matches.slice(0, 10); // show all (capped at 10)
 
   if (matches.length === 0) {
     return (
@@ -143,11 +131,7 @@ function MatchStack({ matches, onView }: MatchStackProps) {
   return (
     <View style={stackStyles.stackOuter}>
       {/* Section title + counter */}
-      <TouchableOpacity
-        style={stackStyles.stackHeader}
-        onPress={() => matches.length > 1 && setExpanded((e) => !e)}
-        activeOpacity={matches.length > 1 ? 0.6 : 1}
-      >
+      <View style={stackStyles.stackHeader}>
         <Text style={stackStyles.stackTitle}>
           {matches.length === 1 ? 'Active Match' : `Active Matches`}
         </Text>
@@ -156,30 +140,19 @@ function MatchStack({ matches, onView }: MatchStackProps) {
             <Text style={stackStyles.countText}>{matches.length}</Text>
           </View>
         )}
-        {matches.length > 1 && (
-          <Text style={stackStyles.expandHint}>{expanded ? '↑ collapse' : '↓ expand'}</Text>
-        )}
-      </TouchableOpacity>
+      </View>
 
       {/* Cards */}
-      <TouchableOpacity
-        activeOpacity={matches.length > 1 && !expanded ? 0.9 : 1}
-        onPress={() => matches.length > 1 && !expanded && setExpanded(true)}
-        style={stackStyles.stackCards}
-      >
+      <View style={stackStyles.stackCards}>
         {visible.map((m, i) => (
           <MatchCard
             key={m.id}
             match={m}
             index={i}
-            expanded={expanded}
             onView={() => onView(m)}
           />
         ))}
-        {!expanded && matches.length > 3 && (
-          <Text style={stackStyles.moreHint}>+{matches.length - 3} more · tap to expand</Text>
-        )}
-      </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -359,6 +332,7 @@ const stackStyles = StyleSheet.create({
   expandHint: { fontFamily: Fonts.body, fontSize: FontSize.xs, color: Colors.text.tertiary, marginLeft: 'auto' as any },
   stackCards: { width: '100%' },
   wrapper: { width: '100%' },
+  wrapperGap: { marginTop: 10 },
   card: { width: '100%' },
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
   labelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
