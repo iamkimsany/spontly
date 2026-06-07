@@ -16,7 +16,8 @@ import { Colors } from '@/constants/colors';
 import { Fonts, FontSize } from '@/constants/typography';
 import { useAppStore } from '@/store';
 import { scheduleLocalNotification } from '@/lib/notifications';
-import { logSafetyEvent, getChatMessages, sendChatMessage, DbChatMessage, supabase, updateMatchStatus, updateGpsActive } from '@/lib/supabase';
+import { logSafetyEvent, getChatMessages, sendChatMessage, DbChatMessage, supabase, updateMatchStatus, updateGpsActive, getMatchWithParticipants } from '@/lib/supabase';
+import { getTrustLevel } from '@/lib/trustLevel';
 
 interface ChatMsg {
   id: string;
@@ -72,6 +73,8 @@ export default function ActiveMeetupScreen() {
   const [activeTab, setActiveTab] = useState<'map' | 'chat'>('map');
   const [locationLabel, setLocationLabel] = useState<string | null>(null);
   const geocodingRef = useRef(false);
+  // Participants loaded fresh from DB (includes trust scores)
+  const [liveParticipants, setLiveParticipants] = useState(activeMatch?.participants ?? []);
   const scrollRef = useRef<ScrollView>(null);
   const locationSub = useRef<Location.LocationSubscription | null>(null);
   const chatChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -195,6 +198,25 @@ export default function ActiveMeetupScreen() {
       updateGpsActive(match.id, p.id, false).catch(() => {});
     }
   };
+
+  // Reload participants from DB on mount so trust scores are fresh
+  useEffect(() => {
+    if (!activeMatch?.id) return;
+    getMatchWithParticipants(activeMatch.id)
+      .then((raw) => {
+        if (!raw) return;
+        const mapped = ((raw.match_participants as any[]) ?? []).map((p: any) => ({
+          userId: p.user_id,
+          name: p.users?.name ?? 'User',
+          photoUrl: p.users?.photo_url ?? null,
+          confirmed: p.confirmed,
+          gpsActive: p.gps_active,
+          trustScore: p.users?.trust_score ?? 40,
+        }));
+        setLiveParticipants(mapped);
+      })
+      .catch((e: any) => console.warn('[ActiveMeetup] participants reload error:', e?.message));
+  }, [activeMatch?.id]);
 
   // Reverse geocode whenever location updates (debounced — only first time or every 200m)
   useEffect(() => {
@@ -338,19 +360,32 @@ export default function ActiveMeetupScreen() {
               {/* Participants */}
               <GlassCard variant="regular" padding={18} style={styles.participantsCard}>
                 <Text style={styles.sectionLabel}>In this meetup</Text>
-                {(activeMatch?.participants ?? [])
+                {liveParticipants
                   .filter((p) => p.userId !== profile?.id)
-                  .map((p) => (
-                    <View key={p.userId} style={styles.participantRow}>
-                      <View style={styles.participantAvatar}>
-                        <Text style={styles.participantInitial}>{p.name[0]}</Text>
-                      </View>
-                      <Text style={styles.participantName}>{p.name}</Text>
-                      <View style={styles.participantStatus}>
+                  .map((p) => {
+                    const level = getTrustLevel(p.trustScore);
+                    return (
+                      <View key={p.userId} style={styles.participantRow}>
+                        <View style={styles.participantAvatar}>
+                          <Text style={styles.participantInitial}>{p.name[0]}</Text>
+                        </View>
+                        <View style={styles.participantInfo}>
+                          <Text style={styles.participantName}>{p.name}</Text>
+                          <View style={styles.participantMeta}>
+                            <View style={[styles.trustBadge, { backgroundColor: level.bg, borderColor: level.border }]}>
+                              <Text style={[styles.trustBadgeText, { color: level.color }]}>
+                                {level.name} · {p.trustScore}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
                         <GPSIndicator status={p.gpsActive ? 'active' : 'off'} />
                       </View>
-                    </View>
-                  ))}
+                    );
+                  })}
+                {liveParticipants.filter((p) => p.userId !== profile?.id).length === 0 && (
+                  <Text style={styles.noParticipants}>Waiting for others to join…</Text>
+                )}
               </GlassCard>
 
               {/* Safety zones legend */}
@@ -468,8 +503,15 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   participantInitial: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.base, color: Colors.text.primary },
-  participantName: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.base, color: Colors.text.primary, flex: 1 },
-  participantStatus: {},
+  participantInfo: { flex: 1, gap: 4 },
+  participantName: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.base, color: Colors.text.primary },
+  participantMeta: { flexDirection: 'row' },
+  trustBadge: {
+    paddingHorizontal: 8, paddingVertical: 3,
+    borderRadius: 9999, borderWidth: 1,
+  },
+  trustBadgeText: { fontFamily: Fonts.bodyMedium, fontSize: 11 },
+  noParticipants: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.tertiary },
   legendCard: { width: '100%', borderRadius: 16 },
   zones: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
   actions: {
