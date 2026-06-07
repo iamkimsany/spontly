@@ -208,7 +208,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingHorizontal: 20, paddingTop: 16, gap: 16, alignItems: 'stretch' },
+  scroll: { paddingHorizontal: 20, paddingTop: 16, gap: 16, alignItems: 'stretch', width: '100%' },
   header: { width: '100%' },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
   greeting: { fontFamily: Fonts.display, fontSize: FontSize.md, color: Colors.text.primary },
