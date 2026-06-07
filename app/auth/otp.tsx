@@ -152,14 +152,32 @@ const styles = StyleSheet.create({
   title: { fontFamily: Fonts.display, fontSize: FontSize.lg, color: Colors.text.primary, marginBottom: 8 },
   sub: { fontFamily: Fonts.body, fontSize: FontSize.base, color: Colors.text.secondary, lineHeight: 22 },
   codeRow: {
-    flexDirection: 'row', gap: 10, marginTop: 28, justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 28,
+    justifyContent: 'center',
+    // Fixed total width: 6 boxes × 46px + 5 gaps × 10px = 326px
+    // Prevents the row from shifting as boxes gain/lose content
+    width: 326,
+    alignSelf: 'center',
+    overflow: 'hidden',
   },
   codeInput: {
-    width: 46, height: 56, borderRadius: 14,
+    // Explicit min/max locks the box so it never resizes on web
+    width: 46,
+    minWidth: 46,
+    maxWidth: 46,
+    height: 56,
+    borderRadius: 14,
     backgroundColor: Colors.glass.regular,
-    borderWidth: 1, borderColor: Colors.border.regular,
+    borderWidth: 1,
+    borderColor: Colors.border.regular,
     textAlign: 'center',
-    fontFamily: Fonts.display, fontSize: FontSize.lg, color: Colors.text.primary,
+    fontFamily: Fonts.display,
+    fontSize: FontSize.lg,
+    color: Colors.text.primary,
+    flexShrink: 0,
+    flexGrow: 0,
   },
   codeInputFilled: {
     borderColor: Colors.accent, backgroundColor: Colors.accentSoft,
