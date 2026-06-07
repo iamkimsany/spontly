@@ -128,6 +128,9 @@ const styles = StyleSheet.create({
     paddingTop: 80,
     justifyContent: 'center',
     gap: 16,
+    width: '100%',
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
   testBanner: {
     backgroundColor: 'rgba(250,204,21,0.12)',

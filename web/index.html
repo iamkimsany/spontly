@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#dbeafe" />
+    <title>Gachi</title>
+    <style>
+      /* Prevent horizontal scroll caused by input focus zoom on mobile browsers */
+      html,
+      body {
+        overflow-x: hidden;
+        max-width: 100vw;
+        -webkit-text-size-adjust: 100%;
+      }
+
+      /* Prevent iOS from zooming on input focus — requires font-size >= 16px.
+         React Native Web sets font-size on <input> via inline style; we override
+         only when the value is below 16px so text still scales normally. */
+      input,
+      textarea,
+      select {
+        font-size: max(16px, 1em) !important;
+      }
+
+      /* Remove iOS tap highlight flicker */
+      * {
+        -webkit-tap-highlight-color: transparent;
+      }
+    </style>
+    <%- helmet.htmlAttributes.toString() %>
+    <%- helmet.title.toString() %>
+    <%- helmet.meta.toString() %>
+    <%- helmet.link.toString() %>
+    <%- helmet.script.toString() %>
+  </head>
+  <body>
+    <%- helmet.bodyAttributes.toString() %>
+    <div id="root"><%- appHtml %></div>
+    <%- scripts.join('\n') %>
+  </body>
+</html>
