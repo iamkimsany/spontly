@@ -52,6 +52,7 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
   },
   inner: {
+    flex: 1,
     borderWidth: 1,
     borderRadius: 24,
   },
