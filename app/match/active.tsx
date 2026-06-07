@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Check } from 'lucide-react-native';
+import { Check, MapPin, MessageCircle } from 'lucide-react-native';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput,
   Modal, KeyboardAvoidingView, Platform,
@@ -41,11 +41,37 @@ function dbMsgToChat(
   };
 }
 
+const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ?? '';
+
+async function reverseGeocode(lat: number, lng: number): Promise<string> {
+  try {
+    const res = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_MAPS_API_KEY}&language=en`
+    );
+    const data = await res.json();
+    if (data.status !== 'OK' || !data.results?.length) return 'Seoul, Korea';
+    // Pick sublocality (neighborhood) + locality (city) from address components
+    const comps: { types: string[]; long_name: string }[] = data.results[0].address_components;
+    const get = (...types: string[]) =>
+      comps.find((c) => types.some((t) => c.types.includes(t)))?.long_name ?? '';
+    const neighborhood = get('sublocality_level_2', 'sublocality_level_1', 'neighborhood');
+    const district = get('sublocality_level_1', 'locality', 'administrative_area_level_2');
+    const city = get('locality', 'administrative_area_level_1');
+    if (neighborhood && district && neighborhood !== district) return `${neighborhood}, ${district}`;
+    if (district && city && district !== city) return `${district}, ${city}`;
+    return data.results[0].formatted_address?.split(',').slice(0, 2).join(',').trim() ?? 'Seoul, Korea';
+  } catch {
+    return 'Seoul, Korea';
+  }
+}
+
 export default function ActiveMeetupScreen() {
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [inputText, setInputText] = useState('');
   const [elapsed, setElapsed] = useState(0);
   const [activeTab, setActiveTab] = useState<'map' | 'chat'>('map');
+  const [locationLabel, setLocationLabel] = useState<string | null>(null);
+  const geocodingRef = useRef(false);
   const scrollRef = useRef<ScrollView>(null);
   const locationSub = useRef<Location.LocationSubscription | null>(null);
   const chatChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -170,6 +196,17 @@ export default function ActiveMeetupScreen() {
     }
   };
 
+  // Reverse geocode whenever location updates (debounced — only first time or every 200m)
+  useEffect(() => {
+    if (!currentLocation || geocodingRef.current) return;
+    geocodingRef.current = true;
+    reverseGeocode(currentLocation.latitude, currentLocation.longitude).then((label) => {
+      setLocationLabel(label);
+      // Allow re-geocoding after 60 s to pick up movement
+      setTimeout(() => { geocodingRef.current = false; }, 60000);
+    });
+  }, [currentLocation?.latitude, currentLocation?.longitude]);
+
   const checkSafetyZone = useCallback(
     (lat: number, lng: number) => {
       // Simplified: all good for demo. In production compare to meetup location + chat location.
@@ -264,9 +301,15 @@ export default function ActiveMeetupScreen() {
               onPress={() => setActiveTab(tab)}
               style={[styles.tab, activeTab === tab && styles.tabActive]}
             >
-              <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                {tab === 'map' ? '📍 Map & Safety' : '💬 Group Chat'}
-              </Text>
+              <View style={styles.tabInner}>
+                {tab === 'map'
+                  ? <MapPin size={14} color={activeTab === tab ? Colors.accent : Colors.text.secondary} strokeWidth={2} />
+                  : <MessageCircle size={14} color={activeTab === tab ? Colors.accent : Colors.text.secondary} strokeWidth={2} />
+                }
+                <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+                  {tab === 'map' ? 'Map & Safety' : 'Group Chat'}
+                </Text>
+              </View>
             </TouchableOpacity>
           ))}
         </View>
@@ -277,13 +320,18 @@ export default function ActiveMeetupScreen() {
               {/* Map placeholder */}
               <GlassCard variant="strong" padding={0} style={styles.mapCard}>
                 <View style={styles.mapPlaceholder}>
-                  <Text style={styles.mapIcon}>🗺️</Text>
-                  <Text style={styles.mapText}>
-                    {currentLocation
-                      ? `📍 ${currentLocation.latitude.toFixed(4)}, ${currentLocation.longitude.toFixed(4)}`
-                      : 'Getting location...'}
-                  </Text>
-                  <Text style={styles.mapSub}>{activeMatch?.location}</Text>
+                  <MapPin size={40} color={Colors.accent} strokeWidth={1.6} />
+                  <View style={styles.mapLabelRow}>
+                    <MapPin size={14} color={Colors.accent} strokeWidth={2} />
+                    <Text style={styles.mapText}>
+                      {currentLocation
+                        ? (locationLabel ?? 'Finding your location…')
+                        : 'Finding your location…'}
+                    </Text>
+                  </View>
+                  {activeMatch?.location ? (
+                    <Text style={styles.mapSub}>{activeMatch.location}</Text>
+                  ) : null}
                 </View>
               </GlassCard>
 
@@ -395,8 +443,9 @@ const styles = StyleSheet.create({
     flex: 1, paddingVertical: 10, borderRadius: 12,
     backgroundColor: Colors.glass.subtle,
     borderWidth: 1, borderColor: Colors.border.subtle,
-    alignItems: 'center',
+    alignItems: 'center', justifyContent: 'center',
   },
+  tabInner: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   tabActive: { backgroundColor: Colors.accentSoft, borderColor: Colors.border.accent },
   tabText: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.sm, color: Colors.text.secondary },
   tabTextActive: { color: Colors.accent },
@@ -406,8 +455,8 @@ const styles = StyleSheet.create({
     height: 220, alignItems: 'center', justifyContent: 'center',
     backgroundColor: Colors.glass.strong, borderRadius: 20, gap: 8,
   },
-  mapIcon: { fontSize: 48 },
-  mapText: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.sm, color: Colors.accent },
+  mapLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  mapText: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.base, color: Colors.text.primary },
   mapSub: { fontFamily: Fonts.body, fontSize: FontSize.xs, color: Colors.text.secondary },
   participantsCard: { width: '100%' },
   sectionLabel: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.sm, color: Colors.text.secondary, marginBottom: 12 },
