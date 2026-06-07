@@ -14,7 +14,7 @@ import { GPSIndicator } from '@/components/ui/GPSIndicator';
 import { SafetyZoneBadge } from '@/components/ui/SafetyZoneBadge';
 import { Colors } from '@/constants/colors';
 import { Fonts, FontSize } from '@/constants/typography';
-import { useAppStore, SafetyZone } from '@/store';
+import { useAppStore } from '@/store';
 import { scheduleLocalNotification } from '@/lib/notifications';
 import { logSafetyEvent, getChatMessages, sendChatMessage, DbChatMessage, supabase, updateMatchStatus, updateGpsActive } from '@/lib/supabase';
 
@@ -357,7 +357,7 @@ export default function ActiveMeetupScreen() {
               <GlassCard variant="subtle" padding={16} style={styles.legendCard}>
                 <Text style={styles.sectionLabel}>Safety status</Text>
                 <View style={styles.zones}>
-                  {(['green', 'yellow', 'red', 'black'] as SafetyZone[]).map((z) => (
+                  {(['green', 'yellow', 'red'] as const).map((z) => (
                     <SafetyZoneBadge key={z} zone={z} />
                   ))}
                 </View>
