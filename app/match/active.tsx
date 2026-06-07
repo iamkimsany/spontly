@@ -290,17 +290,19 @@ export default function ActiveMeetupScreen() {
               {/* Participants */}
               <GlassCard variant="regular" padding={18} style={styles.participantsCard}>
                 <Text style={styles.sectionLabel}>In this meetup</Text>
-                {activeMatch?.participants.map((p) => (
-                  <View key={p.userId} style={styles.participantRow}>
-                    <View style={styles.participantAvatar}>
-                      <Text style={styles.participantInitial}>{p.name[0]}</Text>
+                {(activeMatch?.participants ?? [])
+                  .filter((p) => p.userId !== profile?.id)
+                  .map((p) => (
+                    <View key={p.userId} style={styles.participantRow}>
+                      <View style={styles.participantAvatar}>
+                        <Text style={styles.participantInitial}>{p.name[0]}</Text>
+                      </View>
+                      <Text style={styles.participantName}>{p.name}</Text>
+                      <View style={styles.participantStatus}>
+                        <GPSIndicator active={p.gpsActive} />
+                      </View>
                     </View>
-                    <Text style={styles.participantName}>{p.name}</Text>
-                    <View style={styles.participantStatus}>
-                      <GPSIndicator active={p.gpsActive} />
-                    </View>
-                  </View>
-                ))}
+                  ))}
               </GlassCard>
 
               {/* Safety zones legend */}
@@ -422,12 +424,9 @@ const styles = StyleSheet.create({
   legendCard: { width: '100%', borderRadius: 16 },
   zones: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
   actions: {
-    flexDirection: 'row',
     paddingHorizontal: 16,
     paddingBottom: 24,
     paddingTop: 12,
-    gap: 12,
-    alignItems: 'center',
   },
   chatContent: { paddingHorizontal: 16, paddingTop: 12 },
   bubble: {
