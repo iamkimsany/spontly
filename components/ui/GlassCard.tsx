@@ -28,28 +28,35 @@ export function GlassCard({ children, variant = 'regular', style, padding }: Pro
     : { paddingVertical: 20, paddingHorizontal: 24 };
 
   return (
-    <BlurView intensity={config.blur} tint="light" style={[styles.blur, style]}>
-      <View
-        style={[
-          styles.inner,
-          pad,
-          {
-            backgroundColor: config.bg,
-            borderColor: config.border,
-          },
-        ]}
-      >
-        {children}
-      </View>
-    </BlurView>
+    // Outer View handles ALL layout (width, height, alignSelf) — reliable on web
+    <View style={[styles.container, style]}>
+      {/* BlurView fills the container — no layout role, pure visual */}
+      <BlurView intensity={config.blur} tint="light" style={styles.blur}>
+        <View
+          style={[
+            styles.inner,
+            pad,
+            {
+              backgroundColor: config.bg,
+              borderColor: config.border,
+            },
+          ]}
+        >
+          {children}
+        </View>
+      </BlurView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  blur: {
+  container: {
     borderRadius: 24,
     overflow: 'hidden',
     alignSelf: 'stretch',
+  },
+  blur: {
+    flex: 1,
   },
   inner: {
     flex: 1,
