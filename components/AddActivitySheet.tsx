@@ -177,9 +177,9 @@ export function AddActivitySheet({ visible, onClose }: Props) {
       </TouchableWithoutFeedback>
 
       <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}>
-        <BlurView intensity={50} tint="dark" style={styles.blurSheet}>
+        <BlurView intensity={60} tint="light" style={styles.blurSheet}>
           <View style={StyleSheet.absoluteFill} pointerEvents="none">
-            <View style={styles.darkOverlay} />
+            <View style={styles.lightOverlay} />
           </View>
 
           <View style={styles.handle} />
@@ -213,7 +213,7 @@ export function AddActivitySheet({ visible, onClose }: Props) {
               value={title}
               onChangeText={setTitle}
               placeholder={placeholder}
-              placeholderTextColor="rgba(255,255,255,0.35)"
+              placeholderTextColor={Colors.text.tertiary}
               style={styles.input}
               multiline={false}
               returnKeyType="done"
@@ -300,9 +300,9 @@ export function AddActivitySheet({ visible, onClose }: Props) {
               <Switch
                 value={isPublic}
                 onValueChange={setIsPublic}
-                trackColor={{ false: 'rgba(255,255,255,0.15)', true: 'rgba(37,99,235,0.6)' }}
-                thumbColor={isPublic ? '#2563EB' : 'rgba(255,255,255,0.5)'}
-                ios_backgroundColor="rgba(255,255,255,0.15)"
+                trackColor={{ false: 'rgba(0,0,0,0.10)', true: 'rgba(37,99,235,0.6)' }}
+                thumbColor={isPublic ? '#2563EB' : 'rgba(0,0,0,0.3)'}
+                ios_backgroundColor="rgba(0,0,0,0.10)"
               />
             </View>
 
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   backdrop: {
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(10,15,30,0.70)',
+    backgroundColor: 'rgba(0,0,0,0.30)',
   },
   sheet: {
     position: 'absolute',
@@ -335,7 +335,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 36,
     borderTopRightRadius: 36,
     overflow: 'hidden',
-    // explicit flex so ScrollView inside BlurView gets a bounded parent
     display: 'flex',
     flexDirection: 'column',
   },
@@ -346,12 +345,12 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: 'rgba(255,255,255,0.10)',
+    borderColor: 'rgba(0,0,0,0.06)',
     overflow: 'hidden',
   },
-  darkOverlay: {
+  lightOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(10,15,30,0.72)',
+    backgroundColor: 'rgba(255,255,255,0.88)',
     borderTopLeftRadius: 36,
     borderTopRightRadius: 36,
   },
@@ -362,27 +361,27 @@ const styles = StyleSheet.create({
   },
   handle: {
     width: 40, height: 4, borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.35)',
+    backgroundColor: 'rgba(0,0,0,0.15)',
     alignSelf: 'center',
     marginTop: 14, marginBottom: 24,
   },
   title: {
     fontFamily: Fonts.display,
     fontSize: FontSize.xl,
-    color: '#ffffff',
+    color: Colors.text.primary,
     marginBottom: 6,
     letterSpacing: -0.3,
   },
   sub: {
     fontFamily: Fonts.body,
     fontSize: FontSize.base,
-    color: 'rgba(255,255,255,0.55)',
+    color: Colors.text.secondary,
     marginBottom: 24,
   },
   label: {
     fontFamily: Fonts.bodyMedium,
     fontSize: FontSize.sm,
-    color: 'rgba(255,255,255,0.55)',
+    color: Colors.text.tertiary,
     marginBottom: 10,
     marginTop: 20,
     textTransform: 'uppercase',
@@ -395,24 +394,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingVertical: 8, paddingHorizontal: 14,
     borderRadius: 9999,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(0,0,0,0.04)',
+    borderWidth: 1, borderColor: 'rgba(0,0,0,0.08)',
   },
   chipActive: {
-    backgroundColor: 'rgba(37,99,235,0.22)',
-    borderColor: 'rgba(37,99,235,0.55)',
+    backgroundColor: 'rgba(37,99,235,0.10)',
+    borderColor: 'rgba(37,99,235,0.40)',
   },
   chipEmoji: { fontSize: 15 },
-  chipLabel: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: 'rgba(255,255,255,0.75)' },
-  chipLabelActive: { color: '#ffffff', fontFamily: Fonts.bodyMedium },
+  chipLabel: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.secondary },
+  chipLabelActive: { color: Colors.accent, fontFamily: Fonts.bodyMedium },
 
   // Text input
   input: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(0,0,0,0.04)',
+    borderWidth: 1, borderColor: 'rgba(0,0,0,0.10)',
     borderRadius: 16,
     paddingVertical: 14, paddingHorizontal: 16,
-    color: '#ffffff',
+    color: Colors.text.primary,
     fontFamily: Fonts.body, fontSize: FontSize.base,
   },
 
@@ -420,16 +419,16 @@ const styles = StyleSheet.create({
   timeRow: { flexDirection: 'row', gap: 10 },
   timeChip: {
     flex: 1, paddingVertical: 11, borderRadius: 9999,
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(0,0,0,0.04)',
+    borderWidth: 1, borderColor: 'rgba(0,0,0,0.08)',
     alignItems: 'center',
   },
   timeChipActive: {
-    backgroundColor: 'rgba(37,99,235,0.22)',
-    borderColor: 'rgba(37,99,235,0.55)',
+    backgroundColor: 'rgba(37,99,235,0.10)',
+    borderColor: 'rgba(37,99,235,0.40)',
   },
-  timeLabel: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.sm, color: 'rgba(255,255,255,0.55)' },
-  timeLabelActive: { color: '#ffffff' },
+  timeLabel: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.sm, color: Colors.text.secondary },
+  timeLabelActive: { color: Colors.accent },
 
   // ── MEET AS segmented control ──
   segmentRow: {
@@ -442,9 +441,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 10,
     borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(0,0,0,0.04)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(0,0,0,0.08)',
     gap: 4,
   },
   segmentBtnActive: {
@@ -452,7 +451,7 @@ const styles = StyleSheet.create({
     borderColor: '#2563EB',
     shadowColor: '#2563EB',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.45,
+    shadowOpacity: 0.35,
     shadowRadius: 14,
     elevation: 8,
   },
@@ -460,16 +459,16 @@ const styles = StyleSheet.create({
   segmentBtnLabel: {
     fontFamily: Fonts.bodyMedium,
     fontSize: FontSize.base,
-    color: 'rgba(255,255,255,0.65)',
+    color: Colors.text.secondary,
   },
   segmentBtnLabelActive: { color: '#ffffff' },
   segmentDesc: {
     fontFamily: Fonts.body,
     fontSize: FontSize.xs,
-    color: 'rgba(255,255,255,0.35)',
+    color: Colors.text.tertiary,
     textAlign: 'center',
   },
-  segmentDescActive: { color: 'rgba(255,255,255,0.75)' },
+  segmentDescActive: { color: 'rgba(255,255,255,0.85)' },
 
   // Max group size
   sizeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -477,8 +476,8 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     paddingHorizontal: 16,
     borderRadius: 9999,
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(0,0,0,0.04)',
+    borderWidth: 1, borderColor: 'rgba(0,0,0,0.08)',
     minWidth: 44,
     alignItems: 'center',
   },
@@ -486,19 +485,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#2563EB',
     borderColor: '#2563EB',
   },
-  sizeLabel: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.sm, color: 'rgba(255,255,255,0.6)' },
+  sizeLabel: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.sm, color: Colors.text.secondary },
   sizeLabelActive: { color: '#ffffff' },
 
   // Visibility
   visibilityCard: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     marginTop: 20, padding: 16,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+    backgroundColor: 'rgba(0,0,0,0.04)',
+    borderRadius: 16, borderWidth: 1, borderColor: 'rgba(0,0,0,0.08)',
   },
   visibilityText: { flex: 1, marginRight: 16 },
-  visTitle: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.base, color: '#ffffff' },
-  visSub: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: 'rgba(255,255,255,0.45)', marginTop: 2 },
+  visTitle: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.base, color: Colors.text.primary },
+  visSub: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.secondary, marginTop: 2 },
 
   // Submit button
   addButton: {
