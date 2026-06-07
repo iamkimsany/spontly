@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl,
 } from 'react-native';
@@ -15,6 +15,7 @@ import { Colors } from '@/constants/colors';
 import { Fonts, FontSize } from '@/constants/typography';
 import { useAppStore, Match } from '@/store';
 import { AddActivitySheet } from '@/components/AddActivitySheet';
+import { MatchFoundPopup } from '@/components/MatchFoundPopup';
 import { CATEGORIES } from '@/constants/categories';
 import { getMatchWithParticipants, getUserMatches } from '@/lib/supabase';
 import { useMatchSubscription } from '@/hooks/useMatchSubscription';
@@ -85,6 +86,8 @@ export default function HomeScreen() {
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [gpsStatus, setGpsStatus] = useState<GPSStatus>('off');
+  const [matchPopup, setMatchPopup] = useState<{ title: string; participants: Match['participants'] } | null>(null);
+  const seenMatchId = useRef<string | null>(null);
 
   // Check real GPS status on mount
   useEffect(() => {
@@ -102,6 +105,18 @@ export default function HomeScreen() {
   useEffect(() => {
     if (profile?.id) loadActiveMatch(profile.id, setActiveMatch);
   }, [profile?.id]);
+
+  // Show match popup when a new match arrives
+  useEffect(() => {
+    if (activeMatch && activeMatch.id !== seenMatchId.current) {
+      seenMatchId.current = activeMatch.id;
+      setMatchPopup({
+        title: activeMatch.activityTitle,
+        participants: activeMatch.participants.filter((p) => p.userId !== profile?.id),
+      });
+    }
+    if (!activeMatch) seenMatchId.current = null;
+  }, [activeMatch?.id]);
 
   const greeting = () => {
     const h = new Date().getHours();
@@ -236,6 +251,13 @@ export default function HomeScreen() {
 
         <AddActivitySheet visible={showAddSheet} onClose={() => setShowAddSheet(false)} />
       </SafeAreaView>
+
+      <MatchFoundPopup
+        visible={!!matchPopup}
+        activityTitle={matchPopup?.title ?? ''}
+        participants={matchPopup?.participants ?? []}
+        onDismiss={() => setMatchPopup(null)}
+      />
     </GradientBackground>
   );
 }
