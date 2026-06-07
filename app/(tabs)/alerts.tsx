@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { ChevronRight } from 'lucide-react-native';
 import { Star } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -60,29 +61,41 @@ export default function AlertsScreen() {
         </View>
 
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-          {DEMO_ALERTS.map((alert) => (
-            <GlassCard
-              key={alert.id}
-              variant={alert.type === 'match' ? 'active' : 'regular'}
-              padding={{ vertical: 16, horizontal: 18 }}
-              style={styles.alertItem}
-            >
-              <View style={styles.alertRow}>
-                {alert.emoji === 'star' ? (
-                  <View style={styles.alertIconWrap}>
-                    <Star size={20} color="#2563EB" fill="#2563EB" strokeWidth={1.6} />
+          {DEMO_ALERTS.map((alert) => {
+            const tappable = alert.type === 'match' || alert.type === 'rating';
+            return (
+              <TouchableOpacity
+                key={alert.id}
+                activeOpacity={tappable ? 0.7 : 1}
+                onPress={() => tappable && handleAlert(alert)}
+                style={styles.alertTouchable}
+              >
+                <GlassCard
+                  variant={alert.type === 'match' ? 'active' : 'regular'}
+                  padding={{ vertical: 16, horizontal: 18 }}
+                  style={styles.alertItem}
+                >
+                  <View style={styles.alertRow}>
+                    {alert.emoji === 'star' ? (
+                      <View style={styles.alertIconWrap}>
+                        <Star size={20} color="#2563EB" fill="#2563EB" strokeWidth={1.6} />
+                      </View>
+                    ) : (
+                      <Text style={styles.alertEmoji}>{alert.emoji}</Text>
+                    )}
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.alertTitle}>{alert.title}</Text>
+                      <Text style={styles.alertBody}>{alert.body}</Text>
+                      <Text style={styles.alertTime}>{alert.time}</Text>
+                    </View>
+                    {tappable && (
+                      <ChevronRight size={18} color={Colors.text.tertiary} strokeWidth={2} />
+                    )}
                   </View>
-                ) : (
-                  <Text style={styles.alertEmoji}>{alert.emoji}</Text>
-                )}
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.alertTitle}>{alert.title}</Text>
-                  <Text style={styles.alertBody}>{alert.body}</Text>
-                </View>
-                <Text style={styles.alertTime}>{alert.time}</Text>
-              </View>
-            </GlassCard>
-          ))}
+                </GlassCard>
+              </TouchableOpacity>
+            );
+          })}
           <View style={{ height: 100 }} />
         </ScrollView>
       </SafeAreaView>
@@ -95,12 +108,13 @@ const styles = StyleSheet.create({
   pageTitle: { fontFamily: Fonts.display, fontSize: FontSize.lg, color: Colors.text.primary },
   badge: { backgroundColor: Colors.accentSoft, borderRadius: 9999, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: Colors.border.accent },
   badgeText: { fontFamily: Fonts.bodySemiBold, fontSize: FontSize.xs, color: Colors.accent },
-  scroll: { paddingHorizontal: 20, gap: 10 },
+  scroll: { paddingHorizontal: 20, gap: 10, width: '100%' },
+  alertTouchable: { width: '100%' },
   alertItem: { width: '100%' },
-  alertRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-  alertEmoji: { fontSize: 22, width: 32 },
-  alertIconWrap: { width: 32, alignItems: 'flex-start', paddingTop: 2 },
+  alertRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  alertEmoji: { fontSize: 22, width: 32, textAlign: 'center' },
+  alertIconWrap: { width: 32, alignItems: 'center' },
   alertTitle: { fontFamily: Fonts.bodyMedium, fontSize: FontSize.base, color: Colors.text.primary },
-  alertBody: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.secondary, marginTop: 3, lineHeight: 20 },
-  alertTime: { fontFamily: Fonts.body, fontSize: FontSize.xs, color: Colors.text.tertiary, marginLeft: 8, marginTop: 2 },
+  alertBody: { fontFamily: Fonts.body, fontSize: FontSize.sm, color: Colors.text.secondary, marginTop: 2, lineHeight: 20 },
+  alertTime: { fontFamily: Fonts.body, fontSize: FontSize.xs, color: Colors.text.tertiary, marginTop: 4 },
 });
